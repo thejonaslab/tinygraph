@@ -1,0 +1,96 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.2.1
+
+commands:
+  preinstall:
+    description:  "Set up system-level packages"
+    steps:
+      - run:
+          name: install linux packages
+          command: |
+            sudo apt-get update
+            
+            
+            
+  setup_conda:
+    description: create a conda environment where we can flourish
+    steps:
+      - run:
+          name: get_anaconda
+          command: |
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+            bash miniconda.sh -b -p $HOME/miniconda
+            export PATH="$HOME/miniconda/bin:$PATH"
+            conda config --set always_yes yes --set changeps1 no
+            conda update -q conda
+            # useful for debugging
+            conda info -a
+            echo 'export PATH=$HOME/miniconda/bin:$PATH' >> $BASH_ENV
+            conda init bash
+            
+  setup_python_deps:
+    description: install necessary ptyhon packages
+    steps:
+      - run:
+          name: conda environment create
+          command: |
+            cat ~/.bashrc
+            . ~/.bashrc
+            . ~/miniconda/etc/profile.d/conda.sh
+            printenv
+            conda create -q -n test-environment numba python cython decorator pytest networkx
+            conda activate test-environment
+
+  run_tests:
+    description: run pytests
+    steps:
+      - run:
+          name: Run the tests
+          command: |
+              . ~/.bashrc
+              . ~/miniconda/etc/profile.d/conda.sh
+              conda activate test-environment
+              cd tests
+              mkdir test-results
+              py.test --junitxml=test-results/junit.xml
+      - store_test_results:
+          path: tests/test-results
+      - store_artifacts:
+          path: tests/test-results
+            
+jobs:
+  build-and-test:
+    executor: python/default
+    steps:
+      - checkout
+      - preinstall
+      - setup_conda
+      - setup_python_deps
+      #- python/load-cache
+      #- python/install-deps
+      #- python/save-cache
+      - run:
+          #command: ./manage.py test
+          command: |
+            . ~/.bashrc
+            . ~/miniconda/etc/profile.d/conda.sh
+            conda activate test-environment
+            which python
+          name: python check
+          
+      - run:
+          command: |
+            . ~/.bashrc
+            . ~/miniconda/etc/profile.d/conda.sh
+            conda activate test-environment
+            ls
+            python setup.py install
+          name: build install
+      - run_tests
+      
+workflows:
+  main:
+    jobs:
+      - build-and-test
