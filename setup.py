@@ -4,7 +4,7 @@ from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy
 
-__version__ = '0.0.1'
+__version__ = '0.1'
 
 COMPILE_ARGS = ["-O3", '-std=c++17', '-g',  
                 '-fno-omit-frame-pointer', '-fPIC', '-g3', ]
@@ -12,7 +12,7 @@ COMPILE_ARGS = ["-O3", '-std=c++17', '-g',
 LD_FLAGS = []
 
 fastutil_sourcefiles = ["tinygraph/fastutils.pyx"]
-extensions += [Extension("tinygraph.fastutils", fastutil_sourcefiles,
+extensions = [Extension("tinygraph.fastutils", fastutil_sourcefiles,
                          include_dirs=[numpy.get_include()],
                          language="c++",
                          extra_compile_args=COMPILE_ARGS, 
@@ -20,7 +20,7 @@ extensions += [Extension("tinygraph.fastutils", fastutil_sourcefiles,
 setup(
     name='tinygraph',
     version=__version__,
-    description='Lightweight Python library for graphs'
+    description='Lightweight Python library for small graphs',
     url='https://github.com/thejonaslab/tinygraph',
     license='MIT',
     packages=['tinygraph'], 
