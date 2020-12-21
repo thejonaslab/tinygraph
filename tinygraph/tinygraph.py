@@ -25,7 +25,7 @@ class TinyGraph:
                 the types of each property.
 
         Outputs:
-            tg (TinyGraph): new TinyGraph instance
+            tg (TinyGraph): new TinyGraph instance.
         """
         self.node_N = node_N
         self.adj_type = adj_type
@@ -35,27 +35,16 @@ class TinyGraph:
         self.v = {} # Dictionary mapping each property name to array of props
         self.e = {} # Array of props init to None?
 
-    def __init__(self,net_x):
-        """
-        Initialize a TinyGraph instance from a networkx graph instance.
-
-        Inputs:
-            net_x (networkx Graph): graph to translate to TinyGraph.
-
-        Outputs:
-            tg (TinyGraph): TinyGraph instance corresponding to networkx graph
-        """
-
     def add_node(self):
         """
         Add a node to a TinyGraph instance. This process can be slow because it 
         requires reshaping the adjancency and property arrays.
 
         Inputs: 
-            None - nodes are indexed numerically 0...node_N - 1
+            None - nodes are indexed numerically 0...node_N - 1.
 
         Outputs:
-            ? node_N (int): new number of nodes
+            ? node_N (int): new number of nodes.
             
         """    
 
@@ -84,11 +73,11 @@ class TinyGraph:
         is fast.
 
         Inputs:
-            key (int, int): Endpoint nodes of edge
-            newValue (adj_type): Weight of edge
+            key (int, int): Endpoint nodes of edge.
+            newValue (adj_type): Weight of edge.
 
         Outputs:
-            None - modifications are made in place
+            None - modifications are made in place.
         """
 
     def __getitem__(self,key):
@@ -96,46 +85,19 @@ class TinyGraph:
         Get the weight of an edge. This operation is fast.
 
         Inputs:
-            key (int, int): Endpoint nodes of edge
+            key (int, int): Endpoint nodes of edge.
 
         Outputs:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
         """
 
-    def to_networkx(self):
+    def copy(self):
         """
-        Get a networkx copy of the current graph.
-
-        Inputs:
-            None
-        
-        Outputs:
-            g (networkx Graph): networkx graph of TinyGraph instance
-        """
-
-    def get_connected_components(self):
-        """
-        Get a list of the connected components in the TinyGraph instance.
+        Get a copy of the TinyGraph instance.
 
         Inputs:
             None
 
         Outputs:
-            cc ([[int]]): A list of connected components, where each connected
-                component is given by a list of the nodes in the component.
-        """
-             
-    def get_min_cycle(self):
-        """
-        Determines if a graph has a cycle, and if so, returns the minimum sized
-        such cycle (by number of nodes). 
-        ? Do we want to create separate functions or try to extend this to
-        ? get the minimum cycle by weights or some edge/vertex property?
-
-        Inputs:
-            None
-
-        Outputs:
-            cycle ([int]): The minimum length cycle (by number of nodes) or None
-                if no cycle exists.
+            tg (TinyGraph): Deep copy of TinyGraph instance.
         """
