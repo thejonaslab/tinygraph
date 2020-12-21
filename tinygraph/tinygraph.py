@@ -102,5 +102,40 @@ class TinyGraph:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
         """
 
-    
+    def to_networkx(self):
+        """
+        Get a networkx copy of the current graph.
+
+        Inputs:
+            None
+        
+        Outputs:
+            g (networkx Graph): networkx graph of TinyGraph instance
+        """
+
+    def get_connected_components(self):
+        """
+        Get a list of the connected components in the TinyGraph instance.
+
+        Inputs:
+            None
+
+        Outputs:
+            cc ([[int]]): A list of connected components, where each connected
+                component is given by a list of the nodes in the component.
+        """
              
+    def get_min_cycle(self):
+        """
+        Determines if a graph has a cycle, and if so, returns the minimum sized
+        such cycle (by number of nodes). 
+        ? Do we want to create separate functions or try to extend this to
+        ? get the minimum cycle by weights or some edge/vertex property?
+
+        Inputs:
+            None
+
+        Outputs:
+            cycle ([int]): The minimum length cycle (by number of nodes) or None
+                if no cycle exists.
+        """
