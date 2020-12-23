@@ -50,13 +50,12 @@ class TinyGraph:
         The new node will have the highest index (node_N - 1).
 
         Inputs:
-            # None - nodes are indexed numerically 0...node_N - 1.
-            props - a dictionary for vertex property values
+            props - a dictionary for properties of the new node
                     If a key is not recognized, it will be ignored.
                     If a key is missing, the corresponding value will be left as 0.
 
         Outputs:
-            ? node_N (int): new number of nodes.
+            None - modifications are made in place.
 
         """
         # # New Adjacency matrix
@@ -77,6 +76,11 @@ class TinyGraph:
             if key in props.keys():
                 self.v[key][self.node_N] = props[key]
 
+        # Reshape edge property arrays
+        for key in self.e.keys():
+            self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=0)
+            self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=1)
+
         # Update the node count
         self.node_N += 1
 
@@ -90,22 +94,20 @@ class TinyGraph:
             n (int): Node to remove. Nodes are indexed numerically 0...node_N-1.
 
         Outputs:
-            ? adj (numpy array): The row of the adjacency matrix corresponding
-                to the node removed.
-            ? v_props (string:property): A map from vertex property names to
-                the property of the node removed.
-            ? e_props (string:property): A map from edge property names to
-                the list of the property for each edge of the node removed.
-            ? node_N (int): new number of nodes
-            ? None - modifications are made in place
+            None - modifications are made in place.
         """
         # First update adjacency matrix
         self.adjacency = np.delete(self.adjacency, n, axis=0)
         self.adjacency = np.delete(self.adjacency, n, axis=1)
 
-        # Trim the property arrays
+        # Trim the vertex property arrays
         for key in self.v.keys():
             np.delete(self.v[key], n)
+
+        # Trim the edge property arrays
+        for key in self.e.keys():
+            self.e[key] = np.delete(self.e[keys], n, axis = 0)
+            self.e[key] = np.delete(self.e[keys], n, axis = 1)
 
         # Update the node count
         self.node_N -= 1
