@@ -13,6 +13,7 @@ def get_connected_components(tg):
         cc ([[int]]): A list of connected components, where each connected
             component is given by a list of the nodes in the component.
     """
+    pass
             
 def get_min_cycle(tg, n):
     """
@@ -29,3 +30,4 @@ def get_min_cycle(tg, n):
         cycle ([int]): The minimum length cycle (by number of nodes) containing
             n or None if no cycle exists.
     """
+    pass

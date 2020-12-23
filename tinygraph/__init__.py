@@ -1,3 +1,3 @@
 ## Nothing here yet
 
-import tinygraph, algorithms, networkx
+import tinygraph, io, algorithms, networkx
