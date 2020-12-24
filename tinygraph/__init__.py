@@ -1,3 +1,6 @@
-## Nothing here yet
+# Determine which submodules get loaded
 
-import tinygraph, io, algorithms, networkx
+# Avoid typing tg.tinygraph.Tinygraph!
+# Just tg.TinyGraph(N)
+from .tinygraph import *
+from . import io, algorithms
