@@ -31,6 +31,7 @@ class TinyGraph:
         self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
         self.v = {} # Dictionary of property arrays (indexed by property name)
         self.e = {} # Same, but 2D arrays
+        self.graph = {} # Dictionary of overall graph -- intended for networkx io
 
         # Initialize vertex property arrays
         for vkey in vert_props.keys():
@@ -40,16 +41,21 @@ class TinyGraph:
         for ekey in edge_props.keys():
             self.e[ekey] = np.zeros((node_N, node_N), dtype = edge_props[ekey])
 
-    def add_node(self, props={}):
+        # Default naming scheme is with numbers, but this can be overwritten
+        # e.g. by tg_from_nx -- hope is to make translation/debugging easier
+        self.node_names = np.arange(node_N)
+
+    def add_node(self, name=None, props={}):
         """
         Add a node to a TinyGraph instance. This process can be slow because it
         requires reshaping the adjacency and property arrays.
         The new node will have the highest index (node_N - 1).
 
         Inputs:
-            props - a dictionary for properties of the new node
-                    If a key is not recognized, it will be ignored.
-                    If a key is missing, the corresponding value will be left as 0.
+            name (string): set the node name
+            props (dict: property name -> values):
+                If a key is not recognized, it will be ignored.
+                If a key is missing, the corresponding value will be left as 0.
 
         Outputs:
             None - modifications are made in place.
@@ -79,6 +85,10 @@ class TinyGraph:
             self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=1)
 
         # Update the node count
+        if name is None:
+            self.node_names.append(node_N)
+        else:
+            self.node_names.append(name)
         self.node_N += 1
 
     def remove_node(self, n):
@@ -107,9 +117,10 @@ class TinyGraph:
             self.e[key] = np.delete(self.e[key], n, axis = 1)
 
         # Update the node count
+        self.node_names.pop()
         self.node_N -= 1
 
-    def __setitem__(self,key,newValue):
+    def __setitem__(self, key, newValue):
         """
         Create an edge or change the weight of an existing edge. This operation
         is fast. Edges are undirected.
@@ -124,7 +135,7 @@ class TinyGraph:
         self.adjacency[key[0]][key[1]] = newValue
         self.adjacency[key[1]][key[0]] = newValue
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         """
         Get the weight of an edge. This operation is fast.
 
@@ -144,27 +155,29 @@ class TinyGraph:
             None
 
         Outputs:
-            tg (TinyGraph): Deep copy of TinyGraph instance.
+            newGraph (TinyGraph): Deep copy of TinyGraph instance.
         """
         v_p, e_p = {}, {}
         for key, arr in self.v.items():
             v_p[key] = arr.dtype
         for key, arr in self.e.items():
-            e_p[key] = arr.dtype  
+            e_p[key] = arr.dtype
         newGraph = TinyGraph(self.node_N, self.adjacency.dtype, v_p, e_p)
         # Add in edges by weight:
         for i in range(self.node_N):
                 for j in range(self.node_N):
                     newGraph[i,j] = sefl.adjacency[i,j]
         # Set vertex properties
-        for key,arr in self.v.items():
+        for key, arr in self.v.items():
             for i in range(self.node_N):
                 newGraph.v[key][i] = arr[i]
         # Set edge properties
-        for key,arr in self.v.items():
+        for key, arr in self.v.items():
             for i in range(self.node_N):
                 for j in range(self.node_N):
                     newGraph.e[key][i,j] = arr[i,j]
+
+        return newGraph
 
     def getVertexProperties(self, n):
         """
@@ -172,7 +185,7 @@ class TinyGraph:
 
         Inputs:
             n (int): Vertex to get properties of.
-        
+
         Outputs:
             props (string:prop_type): A dictionary mapping each of the vertex
                 property names to the property at the input vertex.
@@ -181,7 +194,7 @@ class TinyGraph:
         for key, arr in self.v.items():
             props[key] = arr[n]
         return props
-    
+
     def getEdgeProperties(self, n1, n2):
         """
         Get the properties at a given edge.
@@ -189,7 +202,7 @@ class TinyGraph:
         Inputs:
             n1 (int): Endpoint node 1 of edge to get properties of.
             n2 (int): Endpoint node 2 of edge to get properties of.
-        
+
         Outputs:
             props (string:prop_type): A dictionary mapping each of the edge
                 property names to the property at the input edge.
@@ -202,7 +215,7 @@ class TinyGraph:
     def __repr__(self):
         """
         Representation of graph for debugging.
-        
+
         Inputs:
             None
 
@@ -218,18 +231,4 @@ class TinyGraph:
                 if self.adjacency[i,j]: # Change to not is None?
                     rep += "(" + str(i) + ", " + str(j) + "): " + \
                         str(self.getEdgeProperties(i,j)) + "\n"
-        return rep
-        
-
-# Cant get the module to import >:(
-# t = TinyGraph(2, vert_props={'color': np.int32})
-# print("Original Adjacency Matrix")
-# print(t.adjacency)
-
-# t.add_node({'color': 3})
-# print("After node insertion")
-# print(t.adjacency)
-
-# t.remove_node(0)
-# print("After node removal")
-# print(t.adjacency)
+        return rep[:-1] # strip last newline (remove if you prefer extra whitespace)
