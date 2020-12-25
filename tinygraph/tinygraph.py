@@ -41,10 +41,6 @@ class TinyGraph:
         for ekey in edge_props.keys():
             self.e[ekey] = np.zeros((node_N, node_N), dtype = edge_props[ekey])
 
-        # Default naming scheme is with numbers, but this can be overwritten
-        # e.g. by tg_from_nx -- hope is to make translation/debugging easier
-        self.node_names = np.arange(node_N)
-
     def add_node(self, name=None, props={}):
         """
         Add a node to a TinyGraph instance. This process can be slow because it
@@ -85,10 +81,6 @@ class TinyGraph:
             self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=1)
 
         # Update the node count
-        if name is None:
-            self.node_names.append(node_N)
-        else:
-            self.node_names.append(name)
         self.node_N += 1
 
     def remove_node(self, n):
@@ -117,7 +109,6 @@ class TinyGraph:
             self.e[key] = np.delete(self.e[key], n, axis = 1)
 
         # Update the node count
-        self.node_names.pop()
         self.node_N -= 1
 
     def __setitem__(self, key, newValue):

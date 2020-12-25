@@ -15,6 +15,3 @@ def basic_functionality():
     t.remove_node(0)
     print("After node removal")
     print(t.adjacency)
-
-
-basic_functionality()

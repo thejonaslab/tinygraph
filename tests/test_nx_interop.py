@@ -4,7 +4,7 @@ import numpy as np
 import networkx
 import tinygraph as tg
 
-def test_basic_from_nx():
+def basic_from_nx():
     "Basic test for main functionality"
     # Should look like methane except the weightings are meaningless
     ng = networkx.Graph()
@@ -35,6 +35,7 @@ def test_basic_from_nx():
                          error_mode=False
     )
     ng2 = tg.io.tg_to_nx(t, weight_prop='weight')
-    return t, ng2
+    return ng, t, ng2
 
-tg1, ng2 = test_basic_from_nx()
+def tg_nx_tg():
+    pass
