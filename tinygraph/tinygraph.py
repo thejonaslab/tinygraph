@@ -43,7 +43,7 @@ class TinyGraph:
 
         # Default naming scheme is with numbers, but this can be overwritten
         # e.g. by tg_from_nx -- hope is to make translation/debugging easier
-        self.node_names = np.arange(node_N)
+        self.node_names = list(range(node_N))
 
     def add_node(self, name=None, props={}):
         """
