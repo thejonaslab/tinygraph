@@ -37,5 +37,57 @@ def basic_from_nx():
     ng2 = tg.io.tg_to_nx(t, weight_prop='weight')
     return ng, t, ng2
 
-def tg_nx_tg():
-    pass
+def test_basic_from_nx():
+    ng, t, ng2 = basic_from_nx()
+
+    # Assertion statements...
+    assert(ng.order() == ng2.order())
+    assert(ng.size()  == ng2.size())
+    assert(ng.nodes.keys()   == ng2.nodes.keys())
+
+    # Add more careful stuff too..
+
+    # Check vertex properties up to 'name'
+    # But new entries can be produced
+    for v in ng.nodes:
+        props = ng.nodes[v].keys()
+        for prop in props:
+            if prop in ng2.nodes[v].keys():
+                assert(ng.nodes[v][prop] == ng2.nodes[v][prop])
+            else:
+                assert(prop == 'name')
+
+    # Edge properties up to 'weight'
+    for e in ng.edges:
+        assert(e in ng2.edges())
+
+        for prop in props:
+            if prop in ng2.edges[e].keys():
+                assert(ng.edges[e][prop] == ng2.edges[e][prop])
+            else:
+                assert(prop == 'weight')
+
+def test_triangle():
+    t = tg.TinyGraph(3, vert_props={'name': np.str})
+    t[0, 1] = 1
+    t[1, 2] = 1.1
+    t[2, 0] = 3
+
+    t.v['name'][0] = 'a'
+    t.v['name'][1] = 'b'
+    t.v['name'][2] = 'c'
+
+    ng = tg.io.tg_to_nx(t, weight_prop = 'weight')
+    t2 = tg.io.tg_from_nx(ng, weight_prop='weight', vp_types={'name': np.str})
+
+    assert(np.all(t.adjacency == t2.adjacency))
+    assert(np.all(t.v['name'] == t2.v['name']))
+
+def test_vanishing_edge():
+    """Current behavior is for 0-weighted edges to vanish"""
+    t = tg.TinyGraph(2)
+    t[0, 1] = 0
+    ng = tg.io.tg_to_nx(t)
+    t2 = tg.io.tg_from_nx(ng)
+
+    assert (np.all(t2.adjacency == 0))
