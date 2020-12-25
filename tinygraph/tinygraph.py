@@ -80,6 +80,16 @@ class TinyGraph:
             self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=0)
             self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=1)
 
+        # Set/overwrite name (even if the 'name' field is not yet allocated)
+        if name is not None:
+            # Allocate an array
+            if 'name' not in self.v.keys():
+                self.v['name'] = np.array(list(map(str, range(self.node_N+1))), dtype=np.str)
+
+            # Set/overwrite
+            self.v['name'][self.node_N] = name
+
+
         # Update the node count
         self.node_N += 1
 
@@ -101,7 +111,7 @@ class TinyGraph:
 
         # Trim the vertex property arrays
         for key in self.v.keys():
-            np.delete(self.v[key], n)
+            self.v[key] = np.delete(self.v[key], n)
 
         # Trim the edge property arrays
         for key in self.e.keys():

@@ -3,13 +3,13 @@
 import numpy as np
 import tinygraph as tg
 
-def basic_functionality():
+def test_basic_functionality():
     t = tg.TinyGraph(2, vert_props={'color': np.int32})
     # print("Original Adjacency Matrix")
     # print(t.adjacency)
     assert(t.node_N == 2)
 
-    t.add_node({'color': 3})
+    t.add_node(name='hai', props={'color': 3})
     # print("After node insertion")
     # print(t.adjacency)
     assert(t.node_N == 3)
@@ -19,7 +19,7 @@ def basic_functionality():
     # print(t.adjacency)
     assert(t.node_N == 2)
     assert(t.v['color'][1] == 3)
-    assert(t.v['color'][0] == -1)
+    assert(t.v['color'][0] == 0)
 
 def test_items():
     t = tg.TinyGraph(3, vert_props={'name': np.str})
