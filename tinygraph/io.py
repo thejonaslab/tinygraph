@@ -40,13 +40,15 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
                      adj_type=adj_type, \
                      vert_props=vp_types, \
                      edge_props=ep_types)
-    tg.node_names = list(ng.nodes.keys())
+    # tg.node_names = list(ng.nodes.keys())
     tg.graph = ng.graph
 
     # Get vertex properties
     v_names = list(ng.nodes.keys())
     v_props = list(ng.nodes.values())
     v_name_to_num = dict([(vn, i) for i, vn in enumerate(ng.nodes.keys())])
+    tg.v['name'] = np.array(v_names, dtype=np.object)
+
     for vi in range(ng.order()):
         v_prop = v_props[vi]
 
@@ -133,18 +135,21 @@ def tg_to_nx(tg, weight_prop=None):
     ng.graph = tg.graph
 
     # Fetch vertices
-    ng.add_nodes_from(tg.node_names)
+    node_names = [tg.v['name'][i] for i in range(tg.node_N)] \
+        if 'name' in tg.v.keys() else list(range(tg.node_N))
+
+    ng.add_nodes_from(node_names)
     for i in range(tg.node_N):
-        iname = tg.node_names[i]
+        iname = node_names[i]
         for key in tg.v.keys():
             ng.nodes[iname][key] = tg.v[key][i]
 
     # Fetch edges
     # Loop is such that i<j
     for i in range(tg.node_N):
-        iname = tg.node_names[i]
+        iname = node_names[i]
         for j in range(i+1, tg.node_N):
-            jname = tg.node_names[j]
+            jname = node_names[j]
             edge_val = tg[i, j]
 
             # Consider there to be an edge if the weight is > 0
