@@ -3,20 +3,54 @@
 import numpy as np
 import tinygraph as tg
 
+
+def test_create_graphs_types():
+    """
+    Simple tests to try creating graphs of various dtypes
+    """
+
+    g1_bool = tg.TinyGraph(5, np.bool)
+    g1_bool[3, 2] = True
+    assert g1_bool[2, 3] == True
+    assert g1_bool[3, 2] == True
+    
+    g1_int32 = tg.TinyGraph(5, np.int32)
+    g1_int32[3, 2] = 7
+    assert g1_int32[3, 2] == 7
+    assert g1_int32[2, 3] == 7
+
+    
+    g1_float64 = tg.TinyGraph(5, np.float64)
+    g1_float64[3, 2] = 3.14
+    assert g1_float64[3, 2] == 3.14
+    assert g1_float64[2, 3] == 3.14
+
+def test_graph_properties():
+    """
+    Testing graph properties
+    """
+    g1 = tg.TinyGraph(5, np.int32,
+                      vert_props = {'color' : np.int32},
+                      edge_props = {'color2' : np.int32})
+
+    g1.v['color'][2] = 5
+    g1.v['color'][3] = 8
+
+    g1.e['color2'][2, 3] = 10 
+
+    assert g1.v['color'][2] == 5
+    assert g1.v['color'][3] == 8
+    assert g1.e['color2'][2, 3] == 10
+        
+    
 def test_basic_functionality():
     t = tg.TinyGraph(2, vert_props={'color': np.int32})
-    # print("Original Adjacency Matrix")
-    # print(t.adjacency)
     assert(t.node_N == 2)
 
-    t.add_node(name='hai', props={'color': 3})
-    # print("After node insertion")
-    # print(t.adjacency)
+    t.add_node(props={'color': 3})
     assert(t.node_N == 3)
 
     t.remove_node(0)
-    # print("After node removal")
-    # print(t.adjacency)
     assert(t.node_N == 2)
     assert(t.v['color'][1] == 3)
     assert(t.v['color'][0] == 0)
@@ -31,3 +65,4 @@ def test_items():
     assert(t.v['name'][0] == 'a')
     assert(t.v['name'][1] == 'b')
     assert(t.v['name'][2] == 'c')
+
