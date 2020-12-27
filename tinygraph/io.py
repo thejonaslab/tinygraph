@@ -38,10 +38,10 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
     # First create an instance with the right node size
     tg = tinygraph.TinyGraph(ng.order(), \
                      adj_type=adj_type, \
-                     vert_props=vp_types, \
-                     edge_props=ep_types)
+                     vp_types=vp_types, \
+                     ep_types=ep_types)
     # tg.node_names = list(ng.nodes.keys())
-    tg.graph = ng.graph
+    # tg.graph = ng.graph
 
     # Get vertex properties
     v_names = list(ng.nodes.keys())
@@ -132,7 +132,7 @@ def tg_to_nx(tg, weight_prop=None):
 
     # Make the new network
     ng = networkx.Graph()
-    ng.graph = tg.graph
+    # ng.graph = tg.graph
 
     # Fetch vertices
     node_names = [tg.v['name'][i] for i in range(tg.node_N)] \
