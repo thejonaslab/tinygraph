@@ -1,5 +1,23 @@
 import numpy as np
 
+def default_zero(dtype):
+    if dtype == np.bool:
+        return False
+    elif np.issubdtype(dtype, np.number):
+        return 0
+    else:
+        raise ValueError(f"unknown dtype {dtype}")
+
+def default_one(dtype):
+    if dtype == np.bool:
+        return True
+    elif np.issubdtype(dtype, np.number):
+        return 1
+    else:
+        
+        raise ValueError(f"unknown dtype {dtype}")
+
+
 class TinyGraph:
     """
     tinygraph is centered around our representation of graphs through numpy
@@ -31,22 +49,23 @@ class TinyGraph:
         self.node_N = node_N
         self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
 
-        # Initialize vertex property arrays
+
         self.v = {k : np.zeros(node_N, dtype=dt) \
                   for k, dt in vp_types.items()}
         self.e = {k : np.zeros((node_N, node_N), dtype=dt) \
                   for k, dt in ep_types.items()}
 
-    def add_node(self, props={}):
+    def add_node(self, props = {}, **kwargs):
         """
         Add a node to a TinyGraph instance. This process can be slow because it
         requires reshaping the adjacency and property arrays.
         The new node will have the highest index (node_N - 1).
 
         Inputs:
-            props (dict: property name -> values):
-                If a key is not recognized, it will be ignored.
-                If a key is missing, the corresponding value will be left as 0.
+             properties are passed as key=value pairs or as a props dictionary
+                If a key is not recognized, it will raise an error
+                If a key is missing, the corresponding value will be left as 0
+                for whatever the corresponding dtype is
 
         Outputs:
             None - modifications are made in place.
@@ -61,13 +80,14 @@ class TinyGraph:
         self.adjacency = np.insert(self.adjacency, self.node_N, 0, axis=0)
         self.adjacency = np.insert(self.adjacency, self.node_N, 0, axis=1)
 
+        combined_props = {**props, **kwargs}
         # New vertex property arrays
         for key in self.v.keys():
             # Can resize because it's flat
             self.v[key].resize(self.node_N+1)
 
             # Grab the argument value
-            if key in props.keys():
+            if key in combined_props.keys():
                 self.v[key][self.node_N] = props[key]
 
         # Reshape edge property arrays
@@ -81,7 +101,7 @@ class TinyGraph:
     def remove_node(self, n):
         """
         Remove a node from a TinyGraph instance. This process can be slow
-        because it requires reshaping the adjancency and property arrays.
+        because it requires reshaping the adjacency and property arrays.
         Moves up the nodes after n so that the numbering remains dense.
 
         Inputs:
@@ -133,6 +153,31 @@ class TinyGraph:
         """
         return self.adjacency[key[0]][key[1]]
 
+    def add_edge(self, i, j, weight=None, props={}, **kwargs):
+        """
+
+        ## FIXME clean up this docstring
+
+        Convenience function for adding an edge. kw arguments are
+        turned into properties as well. 
+
+        """
+
+        if self.adjacency[i, j] != default_zero(self.adjacency.dtype):
+            raise ValueError(f"Edge ({i, j}) already exists")
+        
+        if weight is None:
+            weight = default_one(self.adjacency.dtype)
+
+        combined_props = {**props, **kwargs}
+
+        self.adjacency[i, j] = weight
+        self.adjacency[j, i] = weight
+
+        for k, v in combined_props.items():
+            self.e[k][i, j] = v
+                    
+
     def copy(self):
         """
         Get a copy of the TinyGraph instance.
@@ -159,38 +204,38 @@ class TinyGraph:
 
         return newGraph
 
-    # def getVertexProperties(self, n):
-    #     """
-    #     Get the properties at a given vertex.
+    def get_vert_props(self, n):
+        """
+        Get the properties at a given vertex.
 
-    #     Inputs:
-    #         n (int): Vertex to get properties of.
+        Inputs:
+            n (int): Vertex to get properties of.
 
-    #     Outputs:
-    #         props (string:prop_type): A dictionary mapping each of the vertex
-    #             property names to the property at the input vertex.
-    #     """
-    #     props = {}
-    #     for key, arr in self.v.items():
-    #         props[key] = arr[n]
-    #     return props
+        Outputs:
+            props (string:prop_type): A dictionary mapping each of the vertex
+                property names to the property at the input vertex.
+        """
+        props = {}
+        for key, arr in self.v.items():
+            props[key] = arr[n]
+        return props
 
-    # def getEdgeProperties(self, n1, n2):
-    #     """
-    #     Get the properties at a given edge.
+    def get_edge_props(self, n1, n2):
+        """
+        Get the properties at a given edge.
 
-    #     Inputs:
-    #         n1 (int): Endpoint node 1 of edge to get properties of.
-    #         n2 (int): Endpoint node 2 of edge to get properties of.
+        Inputs:
+            n1 (int): Endpoint node 1 of edge to get properties of.
+            n2 (int): Endpoint node 2 of edge to get properties of.
 
-    #     Outputs:
-    #         props (string:prop_type): A dictionary mapping each of the edge
-    #             property names to the property at the input edge.
-    #     """
-    #     props = {}
-    #     for key, arr in self.e.items():
-    #         props[key] = arr[n1,n2]
-    #     return props
+        Outputs:
+            props (string:prop_type): A dictionary mapping each of the edge
+                property names to the property at the input edge.
+        """
+        props = {}
+        for key, arr in self.e.items():
+            props[key] = arr[n1,n2]
+        return props
 
     def __repr__(self):
         """
