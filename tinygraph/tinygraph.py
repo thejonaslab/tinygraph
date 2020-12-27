@@ -10,7 +10,7 @@ class TinyGraph:
     numpy arrays to store the properties at each node or edge.
     """
 
-    def __init__(self, node_N, adj_type=np.int32, vert_props={}, edge_props={}):
+    def __init__(self, node_N, adj_type=np.int32, vp_types={}, ep_types={}):
         """
         Initalize a new TinyGraph instance.
 
@@ -30,14 +30,12 @@ class TinyGraph:
 
         self.node_N = node_N
         self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
-        self.v = {} # Dictionary of property arrays (indexed by property name)
-        self.e = {} # Same, but 2D arrays
 
         # Initialize vertex property arrays
         self.v = {k : np.zeros(node_N, dtype=dt) \
-                  for k, dt in vert_props.items()}
+                  for k, dt in vp_types.items()}
         self.e = {k : np.zeros((node_N, node_N), dtype=dt) \
-                  for k, dt in edge_props.items()}
+                  for k, dt in ep_types.items()}
 
     def add_node(self, props={}):
         """

@@ -30,8 +30,8 @@ def test_graph_properties():
     Testing graph properties
     """
     g1 = tg.TinyGraph(5, np.int32,
-                      vert_props = {'color' : np.int32},
-                      edge_props = {'color2' : np.int32})
+                      vp_types = {'color' : np.int32},
+                      ep_types = {'color2' : np.int32})
 
     g1.v['color'][2] = 5
     g1.v['color'][3] = 8
@@ -44,7 +44,7 @@ def test_graph_properties():
         
     
 def test_basic_functionality():
-    t = tg.TinyGraph(2, vert_props={'color': np.int32})
+    t = tg.TinyGraph(2, vp_types={'color': np.int32})
     assert(t.node_N == 2)
 
     t.add_node(props={'color': 3})
@@ -56,7 +56,7 @@ def test_basic_functionality():
     assert(t.v['color'][0] == 0)
 
 def test_items():
-    t = tg.TinyGraph(3, vert_props={'name': np.str})
+    t = tg.TinyGraph(3, vp_types={'name': np.str})
 
     t.v['name'][0] = 'a'
     t.v['name'][1] = 'b'
