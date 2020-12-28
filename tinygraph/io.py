@@ -178,9 +178,9 @@ def to_binary(g, fileobj):
     """
     
     fields = {'adjacency' : g.adjacency}
-    for k, v in g.v:
+    for k, v in g.v.items():
         fields[f'vp_{k}'] = v
-    for k, v in g.e:
+    for k, v in g.e.items():
         fields[f'ep_{k}'] = v
         
     np.savez_compressed(fileobj, **fields)
