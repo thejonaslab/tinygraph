@@ -312,11 +312,11 @@ class TinyGraph:
         """
         rep = "Vertices:\n"
         for i in range(self.node_N):
-            rep += str(i) + ": " + str(self.getVertexProperties(i)) + "\n"
+            rep += str(i) + ": " + str(self.get_vert_props(i)) + "\n"
         rep += "\nEdges:\n"
         for i in range(self.node_N-1):
             for j in range(i+1, self.node_N):
                 if self.adjacency[i,j]: # Change to not is None?
                     rep += "(" + str(i) + ", " + str(j) + "): " + \
-                        str(self.getEdgeProperties(i,j)) + "\n"
+                        str(self.get_edge_props(i,j)) + "\n"
         return rep[:-1] # strip last newline (remove if you prefer extra whitespace)
