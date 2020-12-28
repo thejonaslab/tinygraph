@@ -86,3 +86,30 @@ def test_add_edge():
 
     
     assert g.get_edge_props(3,4)  == {'color' : 10}
+
+
+def test_add_props():
+    """
+    Simple test of adding and removing properties
+    """
+
+    g = tg.TinyGraph(10, np.float32, ep_types={'color' : np.int32})
+
+    g.add_vert_prop('color1', np.float32)
+
+    assert 'color1' in g.v
+    
+    g.add_edge_prop('color2', np.float32)
+
+    assert 'color2' in g.e
+
+    assert len(g.e) == 2
+
+
+    g.remove_edge_prop('color2')
+    assert len(g.e) == 1
+
+    g.remove_vert_prop('color1')
+    assert len(g.v) == 0
+
+    

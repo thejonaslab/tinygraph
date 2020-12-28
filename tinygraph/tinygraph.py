@@ -57,11 +57,66 @@ class TinyGraph:
         self.node_N = node_N
         self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
 
+        self.v = {}
+        self.e = {}
+        
+        for k, dt in vp_types.items():
+            self.add_vert_prop(k, dt)
 
-        self.v = {k : np.zeros(node_N, dtype=dt) \
-                  for k, dt in vp_types.items()}
-        self.e = {k : np.zeros((node_N, node_N), dtype=dt) \
-                  for k, dt in ep_types.items()}
+        for k, dt in ep_types.items():
+            self.add_edge_prop(k, dt)
+
+    def add_vert_prop(self, name, dtype):
+        """
+        Add the vertex property named 'name' to the graph. 
+
+        Inputs:
+             name : name (string)
+             dtype : numpy dtype
+        """
+        if name in self.v:
+            raise KeyError(f"Graph already has vertex property named {name}")
+        
+        self.v[name] = np.zeros(self.node_N, dtype=dtype)
+
+    def add_edge_prop(self, name, dtype):
+        """
+        Add the edge property named 'name' to the graph. 
+        
+        Inputs: 
+             name : name (string)
+             dtype : numpy dtype
+
+        """
+        
+        if name in self.e:
+            raise KeyError(f"Graph already has edge property named {name}")
+        
+        self.e[name] = np.zeros((self.node_N, self.node_N), dtype=dtype)
+
+    def remove_vert_prop(self, name):
+        """
+        Removes the indicated vertex property from the graph
+
+        Inputs:
+             name: the name of the property
+
+        """
+
+        del self.v[name]
+        
+    def remove_edge_prop(self, name):
+        """
+        Removes the indicated edge property from the graph
+
+        Inputs:
+             name: the name of the property
+
+        """
+
+        del self.e[name]
+        
+
 
     def add_node(self, props = {}, **kwargs):
         """
