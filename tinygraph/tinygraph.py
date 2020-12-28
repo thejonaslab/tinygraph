@@ -216,29 +216,29 @@ class TinyGraph:
         """
         return self.adjacency[key[0]][key[1]]
 
-    def add_edge(self, i, j, weight=None, props={}, **kwargs):
-        """
+    # def add_edge(self, i, j, weight=None, props={}, **kwargs):
+    #     """
 
-        ## FIXME clean up this docstring
+    #     ## FIXME clean up this docstring
 
-        Convenience function for adding an edge. kw arguments are
-        turned into properties as well. 
+    #     Convenience function for adding an edge. kw arguments are
+    #     turned into properties as well. 
 
-        """
+    #     """
 
-        if self.adjacency[i, j] != default_zero(self.adjacency.dtype):
-            raise ValueError(f"Edge ({i, j}) already exists")
+    #     if self.adjacency[i, j] != default_zero(self.adjacency.dtype):
+    #         raise ValueError(f"Edge ({i, j}) already exists")
         
-        if weight is None:
-            weight = default_one(self.adjacency.dtype)
+    #     if weight is None:
+    #         weight = default_one(self.adjacency.dtype)
 
-        combined_props = {**props, **kwargs}
+    #     combined_props = {**props, **kwargs}
 
-        self.adjacency[i, j] = weight
-        self.adjacency[j, i] = weight
+    #     self.adjacency[i, j] = weight
+    #     self.adjacency[j, i] = weight
 
-        for k, v in combined_props.items():
-            self.e[k][i, j] = v
+    #     for k, v in combined_props.items():
+    #         self.e[k][i, j] = v
                     
 
     def copy(self):
