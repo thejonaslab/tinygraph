@@ -68,24 +68,24 @@ def test_items():
 
 
 
-def test_add_edge():
-    """
-    Add an edge 
-    """
+# def test_add_edge():
+#     """
+#     Add an edge 
+#     """
 
-    g = tg.TinyGraph(10, np.float32, ep_types={'color' : np.int32})
+#     g = tg.TinyGraph(10, np.float32, ep_types={'color' : np.int32})
 
-    g.add_edge(1, 2, 5.0)
+#     g.add_edge(1, 2, 5.0)
 
-    assert g[1, 2] == 5.0
+#     assert g[1, 2] == 5.0
     
-    g.add_edge(3, 4, 2.0, color=10)
+#     g.add_edge(3, 4, 2.0, color=10)
 
-    assert g[3, 4] == 2.0
-    assert g.e['color'][3, 4] == 10
+#     assert g[3, 4] == 2.0
+#     assert g.e['color'][3, 4] == 10
 
     
-    assert g.get_edge_props(3,4)  == {'color' : 10}
+#     assert g.get_edge_props(3,4)  == {'color' : 10}
 
 
 def test_add_props():
