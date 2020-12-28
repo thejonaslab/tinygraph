@@ -2,7 +2,7 @@
 
 import numpy as np
 import networkx
-import tinygraph
+import tinygraph as tg
 
 # For slightly cleaner type inference
 import numbers
@@ -36,25 +36,25 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
         tg (TinyGraph): TinyGraph instance corresponding to networkx graph.
     """
     # First create an instance with the right node size
-    tg = tinygraph.TinyGraph(ng.order(), \
+    g = tg.TinyGraph(ng.order(), \
                      adj_type=adj_type, \
                      vp_types=vp_types, \
                      ep_types=ep_types)
-    # tg.node_names = list(ng.nodes.keys())
-    # tg.graph = ng.graph
+    # g.node_names = list(ng.nodes.keys())
+    # g.graph = ng.graph
 
     # Get vertex properties
     v_names = list(ng.nodes.keys())
     v_props = list(ng.nodes.values())
     v_name_to_num = dict([(vn, i) for i, vn in enumerate(ng.nodes.keys())])
-    tg.v['name'] = np.array(v_names, dtype=np.object)
+    g.v['name'] = np.array(v_names, dtype=np.object)
 
     for vi in range(ng.order()):
         v_prop = v_props[vi]
 
         for vp in vp_types.keys():
             if vp in v_prop.keys():
-                tg.v[vp][vi] = v_prop[vp]
+                g.v[vp][vi] = v_prop[vp]
             elif error_mode:
                 raise KeyError("Property {} absent from vertex {}".format( \
                                 vp, v_names[vi]))
@@ -62,10 +62,10 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
             # Default values
             elif issubclass(vp_types[vp], numbers.Number):
                 # Is this a desirably default value?
-                tg.v[vp][vi] = -1
+                g.v[vp][vi] = -1
             else:
                 # Seems clearer to put None than "" for strings
-                tg.v[vp][vi] = None
+                g.v[vp][vi] = None
 
 
     # Get edge properties and also adjacency matrix
@@ -87,32 +87,32 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
         for ep in ep_types.keys():
             if ep in e_prop.keys():
                 # Two entries because undirected graph
-                tg.e[ep][v1_num, v2_num] = e_prop[ep]
-                tg.e[ep][v2_num, v1_num] = e_prop[ep]
+                g.e[ep][v1_num, v2_num] = e_prop[ep]
+                g.e[ep][v2_num, v1_num] = e_prop[ep]
             else:
                 raise KeyError("Property {} absent from edge {}".format( \
                                 ep, e_names[ei]))
 
         # Build adjacency matrix with possibly weighted entries
         if weight_prop is None:
-            tg.adjacency[v1_num, v2_num] = 1
-            tg.adjacency[v2_num, v1_num] = 1
+            g.adjacency[v1_num, v2_num] = 1
+            g.adjacency[v2_num, v1_num] = 1
         else:
             if weight_prop in e_prop.keys():
-                tg.adjacency[v1_num, v2_num] = e_prop[weight_prop]
-                tg.adjacency[v2_num, v1_num] = e_prop[weight_prop]
+                g.adjacency[v1_num, v2_num] = e_prop[weight_prop]
+                g.adjacency[v2_num, v1_num] = e_prop[weight_prop]
             elif error_mode:
                 raise KeyError("Weight Property '{}' absent from edge {}".format( \
                                weight_prop, e_names[ei]))
             else:
                 # Currently set to 0, but should we allow for legal edges
                 # with weight 0? (in which case we should change this to -1)
-                tg.adjacency[v1_num, v2_num] = 0
-                tg.adjacency[v2_num, v1_num] = 0
-    return tg
+                g.adjacency[v1_num, v2_num] = 0
+                g.adjacency[v2_num, v1_num] = 0
+    return g
 
 
-def tg_to_nx(tg, weight_prop=None):
+def tg_to_nx(g, weight_prop=None):
     """
     Get a networkx copy of the current graph.
     Grabs all the properties it can find and uses the node_names property for node names.
@@ -126,40 +126,98 @@ def tg_to_nx(tg, weight_prop=None):
         g (networkx Graph): networkx graph of TinyGraph instance.
     """
     # In case weight_prop is already a property
-    if weight_prop in tg.e.keys():
+    if weight_prop in g.e.keys():
         print("tg_to_nx warning: weight_prop collides with an existing property. "
               "Will overwrite existing values during conversion!")
 
     # Make the new network
     ng = networkx.Graph()
-    # ng.graph = tg.graph
+    # ng.graph = g.graph
 
     # Fetch vertices
-    node_names = [tg.v['name'][i] for i in range(tg.node_N)] \
-        if 'name' in tg.v.keys() else list(range(tg.node_N))
+    node_names = [g.v['name'][i] for i in range(g.node_N)] \
+        if 'name' in g.v.keys() else list(range(g.node_N))
 
     ng.add_nodes_from(node_names)
-    for i in range(tg.node_N):
+    for i in range(g.node_N):
         iname = node_names[i]
-        for key in tg.v.keys():
-            ng.nodes[iname][key] = tg.v[key][i]
+        for key in g.v.keys():
+            ng.nodes[iname][key] = g.v[key][i]
 
     # Fetch edges
     # Loop is such that i<j
-    for i in range(tg.node_N):
+    for i in range(g.node_N):
         iname = node_names[i]
-        for j in range(i+1, tg.node_N):
+        for j in range(i+1, g.node_N):
             jname = node_names[j]
-            edge_val = tg[i, j]
+            edge_val = g[i, j]
 
             # Consider there to be an edge if the weight is > 0
             # No legal negative edge weights allowed!
             if edge_val > 0:
                 ng.add_edge(iname, jname)
-                for ep in tg.e.keys():
-                    ng.edges[iname, jname][ep] = tg.e[ep][i, j]
+                for ep in g.e.keys():
+                    ng.edges[iname, jname][ep] = g.e[ep][i, j]
 
                 # Now write to the `weight_prop` property (possibly overwriting)
                 ng.edges[iname, jname][weight_prop] = edge_val
 
     return ng
+
+
+def to_binary(g, fileobj): 
+    """
+    Convert tiny graph to fast binary representation for storage.
+    Note this is just a compressed npz from numpy with some 
+    help around attribute names
+    Inputs:
+         tg: TinyGraph
+         fileobj : Python file-like object 
+
+    Returns : None
+    """
+    
+    fields = {'adjacency' : g.adjacency}
+    for k, v in g.v:
+        fields[f'vp_{k}'] = v
+    for k, v in g.e:
+        fields[f'ep_{k}'] = v
+        
+    np.savez_compressed(fileobj, **fields)
+    
+def from_binary(fileobj):
+    """
+    Load TinyGraph from binary representation. Note there
+    is minimal sanity checking here for speed. 
+
+    Input:
+        fileobj : Python file-like object
+    Returns:
+        new tinygraph
+    """
+    d = np.load(fileobj)
+    adj = d['adjacency']
+    vp = {}
+    ep = {}
+    for k in d.keys():
+        if k.startswith("vp_"):
+            vp[k[3:]] = d[k]
+        elif k.startswith("ep_"):
+            ep[k[3:]] = d[k]
+        elif k == 'adjacency':
+            pass
+        else:
+            raise ValueErorr(f"unknown field {k} in npz file")
+    g = tg.TinyGraph(adj.shape[0], adj.dtype, 
+                   vp_types = {k : v.dtype for k, v in vp.items()}, 
+                   ep_types = {k : v.dtype for k, v in ep.items()}, 
+                  )
+    g.adjacency[:] = adj
+
+    # copy over the properties directly
+    for k, v in vp.items():
+        g.v[k][:] = v
+    for k, v in ep.items():
+        g.e[k][:] = v
+        
+    return g

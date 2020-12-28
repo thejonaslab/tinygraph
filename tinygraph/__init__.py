@@ -3,4 +3,4 @@
 # Avoid typing tg.tinygraph.Tinygraph!
 # Just tg.TinyGraph(N)
 from .tinygraph import *
-from . import io, algorithms
+from . import io, algorithms, util
