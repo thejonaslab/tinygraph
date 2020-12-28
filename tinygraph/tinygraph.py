@@ -54,7 +54,7 @@ class TinyGraph:
             tg (TinyGraph): new TinyGraph instance.
         """
 
-        self.node_N = node_N
+        self.__node_N = node_N
         self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
 
         self.v = {}
@@ -65,6 +65,10 @@ class TinyGraph:
 
         for k, dt in ep_types.items():
             self.add_edge_prop(k, dt)
+
+    @property
+    def node_N(self):
+        return self.__node_N
 
     def add_vert_prop(self, name, dtype):
         """
