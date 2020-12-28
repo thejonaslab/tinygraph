@@ -1,6 +1,10 @@
 import numpy as np
 
 def default_zero(dtype):
+    """
+    For a given dtype, return the zero value (which
+    will indicate the absence of an edge)
+    """
     if dtype == np.bool:
         return False
     elif np.issubdtype(dtype, np.number):
@@ -9,6 +13,10 @@ def default_zero(dtype):
         raise ValueError(f"unknown dtype {dtype}")
 
 def default_one(dtype):
+    """
+    For a given dtype, return the default one value (which
+    will indicate the presence of an edge / be the default weight)
+    """
     if dtype == np.bool:
         return True
     elif np.issubdtype(dtype, np.number):
