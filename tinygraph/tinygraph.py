@@ -323,4 +323,20 @@ class TinyGraph:
                 if self.adjacency[i,j]: # Change to not is None?
                     rep += "(" + str(i) + ", " + str(j) + "): " + \
                         str(self.get_edge_props(i,j)) + "\n"
-        return rep[:-1] # strip last newline (remove if you prefer extra whitespace)
+        return rep[:-1] # strip last newline 
+
+    def get_neighbors(self, n):
+        """
+        Get the neighbors of a node.
+
+        Inputs:
+            n (int): The node to get the neighbors of.
+
+        Outputs:
+            neighbors ([int]): A list of the neighbor nodes.
+        """
+        neighbors = []
+        for i, w in self.adjacency[n]:
+            if not i == n and not w == 0:
+                neighbors.append(i)
+        return neighbors
