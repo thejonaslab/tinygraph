@@ -38,7 +38,7 @@ def get_connected_components(tg):
         components.add(comp)
     return components
             
-def get_min_cycle(tg):
+def get_min_cycles(tg):
     """
     Determines if a node in a graph is part of a cycle, and if so, returns the 
     minimum  sized such cycle (by number of nodes). 
