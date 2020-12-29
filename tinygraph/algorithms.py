@@ -1,6 +1,7 @@
 # TinyGraph algorithms
 
 import tinygraph
+from queue import Queue
 
 def get_connected_components(tg):
     """
@@ -31,7 +32,8 @@ def get_connected_components(tg):
             current = bfs.pop()
             comp.add(current)
             for n in tg.get_neighbors(current):
-                bfs.add(n)
+                if n in unseen:
+                    bfs.add(n)
         # Add this connected component to the set of connected components.
         components.add(comp)
     return components
@@ -52,4 +54,27 @@ def get_min_cycle(tg):
             the cycle, and the list is order by node (cycle[0] is min cycle that
             includes node 0).
     """
-    pass
+    # Keep track of min cycle for each node.
+    cycles = []
+    for i in range(tg.node_N):
+        cc = set()
+        # Create a FIFO queue to keep track of the nodes which are the same 
+        # number of steps from i. Also keep a set which is the nodes on the path 
+        # to that node.
+        q = Queue()
+        cycle_found = False
+        init_path = set([i])
+        for j in tg.get_neighbors(i):
+            q.put((j, init_path))
+        while q.qsize() > 0 and not cycle_found:
+            currentN, path = q.get()
+            new_path = path.copy()
+            new_path.add(currentN)
+            for j in tg.get_neighbors(currentN):
+                if len(new_path) > 2 and j == i:
+                    cc = new_path
+                    cycle_found = True
+                elif not j in new_path:
+                    q.put((j,path))
+        cycles.append(cc)
+    return cycles
