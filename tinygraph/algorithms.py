@@ -11,31 +11,35 @@ def get_connected_components(tg):
         tg (TinyGraph): graph to find components of.
 
     Outputs:
-        cc ({{int}}): A set of connected components of tg, where each connected
+        cc ([{int}]): A list of connected components of tg, where each connected
             component is given by a set of the nodes in the component.
     """
     # Track which nodes have not been visited yet, and keep a set with all of 
     # the connected components.
     unseen = set(range(tg.node_N))
-    components = set()
+    components = []
     while unseen:
         # While there are still unvisited nodes, start from an unvisited node
         # and explore its connected component.
+        print(unseen)
         comp = set()
         bfs = set()
-        start = unseen.pop()
+        for start in unseen:
+            break
         bfs.add(start)
         while bfs:
             # Explore a new node in the connected component, adding it to the 
             # connected component set and adding its neighbors to the set to 
             # explore next.
             current = bfs.pop()
+            print(current)
+            unseen.remove(current)
             comp.add(current)
             for n in tg.get_neighbors(current):
                 if n in unseen:
                     bfs.add(n)
         # Add this connected component to the set of connected components.
-        components.add(comp)
+        components.append(comp)
     return components
             
 def get_min_cycles(tg):
@@ -75,6 +79,6 @@ def get_min_cycles(tg):
                     cc = new_path
                     cycle_found = True
                 elif not j in new_path:
-                    q.put((j,path))
+                    q.put((j,new_path))
         cycles.append(cc)
     return cycles

@@ -112,4 +112,19 @@ def test_add_props():
     g.remove_vert_prop('color1')
     assert len(g.v) == 0
 
-    
+def test_get_neighbors():
+    g = tg.TinyGraph(6)
+    g[0,1] = 1
+    g[0,2] = 1
+    g[1,2] = 1
+    g[0,3] = 1
+    g[0,5] = 1
+    g[3,4] = 1
+    g[4,5] = 1
+
+    assert g.get_neighbors(0) == [1,2,3,5]
+    assert g.get_neighbors(1) == [0,2]
+    assert g.get_neighbors(2) == [0,1]
+    assert g.get_neighbors(3) == [0,4]
+    assert g.get_neighbors(4) == [3,5]
+    assert g.get_neighbors(5) == [0,4]
