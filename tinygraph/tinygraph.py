@@ -336,7 +336,7 @@ class TinyGraph:
             neighbors ([int]): A list of the neighbor nodes.
         """
         neighbors = []
-        for i, w in self.adjacency[n]:
+        for i, w in enumerate(self.adjacency[n]):
             if not i == n and not w == 0:
                 neighbors.append(i)
         return neighbors

@@ -40,7 +40,7 @@ def test_cycles_small():
     g5[3,4] = 1
     g5[4,5] = 1
 
-    assert tg.algorithms.get_min_cycles(g4) == [{0, 1, 2}, {0, 1, 2}, {0, 1, 2},\
+    assert tg.algorithms.get_min_cycles(g5) == [{0, 1, 2}, {0, 1, 2}, {0, 1, 2},\
                                                 {0, 3, 4, 5},{0, 3, 4, 5},\
                                                 {0, 3, 4, 5}]
 
@@ -57,4 +57,4 @@ def test_cycles_medium():
     g6[1,4] = 1
     g6[4,5] = 1
 
-    assert tg.algorithms.get_min_cycles(g4) == [] 
+    assert tg.algorithms.get_min_cycles(g6) == [] 
