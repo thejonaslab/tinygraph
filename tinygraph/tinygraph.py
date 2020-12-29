@@ -81,7 +81,7 @@ class TinyGraph:
         if name in self.v:
             raise KeyError(f"Graph already has vertex property named {name}")
         
-        self.v[name] = np.zeros(self.node_N, dtype=dtype)
+        self.v[name] = np.zeros(self.__node_N, dtype=dtype)
 
     def add_edge_prop(self, name, dtype):
         """
@@ -96,7 +96,7 @@ class TinyGraph:
         if name in self.e:
             raise KeyError(f"Graph already has edge property named {name}")
         
-        self.e[name] = np.zeros((self.node_N, self.node_N), dtype=dtype)
+        self.e[name] = np.zeros((self.__node_N, self.__node_N), dtype=dtype)
 
     def remove_vert_prop(self, name):
         """
@@ -144,26 +144,26 @@ class TinyGraph:
         # new_adj[:self.node_N, :self.node_N] = self.adjacency
         # self.adjacency = new_adj
 
-        self.adjacency = np.insert(self.adjacency, self.node_N, 0, axis=0)
-        self.adjacency = np.insert(self.adjacency, self.node_N, 0, axis=1)
+        self.adjacency = np.insert(self.adjacency, self.__node_N, 0, axis=0)
+        self.adjacency = np.insert(self.adjacency, self.__node_N, 0, axis=1)
 
         combined_props = {**props, **kwargs}
         # New vertex property arrays
         for key in self.v.keys():
             # Can resize because it's flat
-            self.v[key].resize(self.node_N+1)
+            self.v[key].resize(self.__node_N+1)
 
             # Grab the argument value
             if key in combined_props.keys():
-                self.v[key][self.node_N] = props[key]
+                self.v[key][self.__node_N] = props[key]
 
         # Reshape edge property arrays
         for key in self.e.keys():
-            self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=0)
-            self.e[key] = np.insert(self.e[key], self.node_N, 0, axis=1)
+            self.e[key] = np.insert(self.e[key], self.__node_N, 0, axis=0)
+            self.e[key] = np.insert(self.e[key], self.__node_N, 0, axis=1)
 
         # Update the node count
-        self.node_N += 1
+        self.__node_N += 1
 
     def remove_node(self, n):
         """
@@ -191,7 +191,7 @@ class TinyGraph:
             self.e[key] = np.delete(self.e[key], n, axis = 1)
 
         # Update the node count
-        self.node_N -= 1
+        self.__node_N -= 1
 
     def __setitem__(self, key, newValue):
         """
@@ -258,7 +258,7 @@ class TinyGraph:
         v_p = {k : v.dtype for k, v in self.v.items()}
         e_p = {k : e.dtype for k, e in self.e.items()}
 
-        newGraph = TinyGraph(self.node_N, self.adjacency.dtype,
+        newGraph = TinyGraph(self.__node_N, self.adjacency.dtype,
                              v_p, e_p)
         newGraph.adjacency[:] = self.adjacency
 
@@ -315,11 +315,11 @@ class TinyGraph:
             rep (str): TinyGraph Representation.
         """
         rep = "Vertices:\n"
-        for i in range(self.node_N):
+        for i in range(self.__node_N):
             rep += str(i) + ": " + str(self.get_vert_props(i)) + "\n"
         rep += "\nEdges:\n"
-        for i in range(self.node_N-1):
-            for j in range(i+1, self.node_N):
+        for i in range(self.__node_N-1):
+            for j in range(i+1, self.__node_N):
                 if self.adjacency[i,j]: # Change to not is None?
                     rep += "(" + str(i) + ", " + str(j) + "): " + \
                         str(self.get_edge_props(i,j)) + "\n"
