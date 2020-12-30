@@ -26,6 +26,73 @@ def default_one(dtype):
         raise ValueError(f"unknown dtype {dtype}")
 
 
+class EdgeProxy:
+    """
+    EdgeProxy is a container for 2-d numpy arrays representing edge properties.
+    EdgeProxy enforces rules onto how and when edge properties are assigned.
+    """
+
+    def __init__(self, g, dtype):
+        """
+        Initialize a new EdgeProxy instance.
+
+        Inputs:
+            g (TinyGraph): The graph which EdgeProxy is storing a property for.
+                EdgeProxy will not change the graph in any way, but will check
+                its adjacency matrix.
+            dtype (np.dtype): The datatype of the 2-d numpy matrix to store.
+        
+        Outputs:
+            ep (EdgeProxy): new EdgeProxy object.
+        """
+        self.__g = g
+        self.__props = np.zeros((self.__g.node_N, self.__g.node_N), dtype=dtype)
+
+    def __setitem__(self, key, value):
+        """
+        Set an edge's property.
+
+        Inputs:
+            key ((int, int)): Endpoints of edge to set the property of.
+            value (dtype): Value to set edge property to.
+
+        Outputs:
+            None
+        """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
+        else:
+            e1, e2 = key
+            if self.__g[e1, e2] == default_zero(self.__props.dtype):
+                raise Exception("No such edge.")
+            else:
+                self.__props[e1, e2] = value
+                self.__props[e2, e1] = value
+
+    def __getitem__(self, key):
+        """
+        Get an edge's property.
+
+        Inputs:
+            key ((int, int)): Endpoints of edge to get the property of.
+
+        Outputs:
+            value (dtype): Value of edge property.
+        """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
+        else:
+            e1, e2 = key
+            if self.__g[e1, e2] == default_zero(self.__props.dtype):
+                raise Exception("No such edge.")
+            else:
+                return self.__props[e1, e2]
+
+
 class TinyGraph:
     """
     tinygraph is centered around our representation of graphs through numpy
@@ -205,6 +272,10 @@ class TinyGraph:
         Outputs:
             None - modifications are made in place.
         """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
         self.adjacency[key[0]][key[1]] = newValue
         self.adjacency[key[1]][key[0]] = newValue
 
@@ -218,6 +289,10 @@ class TinyGraph:
         Outputs:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
         """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
         return self.adjacency[key[0]][key[1]]
 
     # def add_edge(self, i, j, weight=None, props={}, **kwargs):
