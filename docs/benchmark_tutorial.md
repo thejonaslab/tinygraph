@@ -450,3 +450,5 @@ average number of nodes: 128.0
 average number of components: 12.22
 average runtime: 0.1161956787109375 ms
 ```
+
+Faster still! Note that this is nearly 13x faster than our original code. 
