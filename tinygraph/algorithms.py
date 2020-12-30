@@ -1,9 +1,12 @@
 # TinyGraph algorithms
 
 import tinygraph
+import tinygraph.fastutils
 from queue import Queue
 
-def get_connected_components(tg):
+from tinygraph.fastutils import get_connected_components
+
+def old_get_connected_components(tg):
     """
     Get a list of the connected components in the TinyGraph instance.
 
@@ -14,6 +17,11 @@ def get_connected_components(tg):
         cc ([{int}]): A list of connected components of tg, where each connected
             component is given by a set of the nodes in the component.
     """
+
+    # precompute neighbor list
+
+    neighbors = tinygraph.fastutils.get_all_neighbors(tg)
+    
     # Track which nodes have not been visited yet, and keep a set with all of 
     # the connected components.
     unseen = set(range(tg.node_N))
@@ -33,7 +41,10 @@ def get_connected_components(tg):
             current = bfs.pop()
             unseen.remove(current)
             comp.add(current)
-            for n in tg.get_neighbors(current):
+            for n_i in range(tg.node_N):
+                n = int(neighbors[current, n_i])
+                if n < 0:
+                    break
                 if n in unseen:
                     bfs.add(n)
         # Add this connected component to the set of connected components.
