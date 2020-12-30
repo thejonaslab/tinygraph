@@ -1,6 +1,7 @@
 # TinyGraph algorithms
 
 import tinygraph
+from queue import Queue
 
 def get_connected_components(tg):
     """
@@ -10,12 +11,36 @@ def get_connected_components(tg):
         tg (TinyGraph): graph to find components of.
 
     Outputs:
-        cc ([[int]]): A list of connected components, where each connected
-            component is given by a list of the nodes in the component.
+        cc ([{int}]): A list of connected components of tg, where each connected
+            component is given by a set of the nodes in the component.
     """
-    pass
+    # Track which nodes have not been visited yet, and keep a set with all of 
+    # the connected components.
+    unseen = set(range(tg.node_N))
+    components = []
+    while unseen:
+        # While there are still unvisited nodes, start from an unvisited node
+        # and explore its connected component.
+        comp = set()
+        bfs = set()
+        for start in unseen:
+            break
+        bfs.add(start)
+        while bfs:
+            # Explore a new node in the connected component, adding it to the 
+            # connected component set and adding its neighbors to the set to 
+            # explore next.
+            current = bfs.pop()
+            unseen.remove(current)
+            comp.add(current)
+            for n in tg.get_neighbors(current):
+                if n in unseen:
+                    bfs.add(n)
+        # Add this connected component to the set of connected components.
+        components.append(comp)
+    return components
             
-def get_min_cycle(tg, n):
+def get_min_cycles(tg):
     """
     Determines if a node in a graph is part of a cycle, and if so, returns the 
     minimum  sized such cycle (by number of nodes). 
@@ -24,10 +49,34 @@ def get_min_cycle(tg, n):
 
     Inputs:
         tg (TinyGraph): graph to find cycles in.
-        n (int): node to search for cycles from.
 
     Outputs:
-        cycle ([int]): The minimum length cycle (by number of nodes) containing
-            n or None if no cycle exists.
+        cycle ([{int}]): A list of the minimum length cycle (by number of nodes)
+            for each node in tg. Cycles are represented by a set of the nodes in
+            the cycle, and the list is order by node (cycle[0] is min cycle that
+            includes node 0).
     """
-    pass
+    # Keep track of min cycle for each node.
+    cycles = []
+    for i in range(tg.node_N):
+        cc = set()
+        # Create a FIFO queue to keep track of the nodes which are the same 
+        # number of steps from i. Also keep a set which is the nodes on the path 
+        # to that node.
+        q = Queue()
+        cycle_found = False
+        init_path = {i,}
+        for j in tg.get_neighbors(i):
+            q.put((j, init_path))
+        while q.qsize() > 1 and not cycle_found:
+            currentN, path = q.get()
+            new_path = path.copy()
+            new_path.add(currentN)
+            for j in tg.get_neighbors(currentN):
+                if not j in new_path:
+                    q.put((j,new_path))
+                elif j == i and len(new_path) > 2:
+                    cc = new_path
+                    cycle_found = True
+        cycles.append(cc)
+    return cycles
