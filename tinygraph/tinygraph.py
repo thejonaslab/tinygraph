@@ -163,7 +163,7 @@ class TinyGraph:
         if name in self.e:
             raise KeyError(f"Graph already has edge property named {name}")
         
-        self.e[name] = np.zeros((self.__node_N, self.__node_N), dtype=dtype)
+        self.e[name] = EdgeProxy(self, dtype)
 
     def remove_vert_prop(self, name):
         """
