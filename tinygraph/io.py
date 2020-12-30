@@ -8,7 +8,7 @@ import tinygraph as tg
 import numbers
 
 def from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
-               error_mode=True):
+               raise_error_on_missing_prop=True):
     """
     Initialize a TinyGraph instance from a networkx graph instance.
     Grabs only the requested vertex and edge properties;
@@ -20,17 +20,17 @@ def from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
             Graph to translate to TinyGraph.
 
         adj_type:
-            Tell what adjacency type to expect (for TinyGraph creation).
+            the adjacency type to expect (for TinyGraph creation).
 
         vp_types (dictionary of prop(string)->type):
-            Tell us which vertex properties to grab (and how much space to allocate).
+            vertex properties to grab (and how much space to allocate).
 
         ep_types (dictionary of prop(string)->type):
-            Tell us which edge properties to grab (and how much space to allocate).
+            edge properties to grab (and how much space to allocate).
 
-        error_mode (bool):
+        raise_error_on_missing_prop (bool):
             In case properties aren't found, we raise a KeyError by default.
-            Setting error_mode to false would result in quietly filling in values.
+            Setting raise_error_on_missing_prop to false would result in quietly filling in values.
 
     Outputs:
         tg (TinyGraph): TinyGraph instance corresponding to networkx graph.
@@ -55,7 +55,7 @@ def from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
         for vp in vp_types.keys():
             if vp in v_prop.keys():
                 g.v[vp][vi] = v_prop[vp]
-            elif error_mode:
+            elif raise_error_on_missing_prop:
                 raise KeyError("Property '{}' absent from vertex {}".format( \
                                 vp, v_names[vi]))
 
@@ -79,9 +79,13 @@ def from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
         # Ignore self-connected edges
         # But if there are multiple edges, maybe just overwrite..
         if v1_num == v2_num:
-            if error_mode:
-                print("Warning: Skipping a self-edge")
-            continue
+            raise ValueError(f"Error: Conversion from networkx graph to tinygraph "
+                             f"failed. Self-connected edge found for vertex "
+                             f"{e_names[ei][0]}."
+            )
+            # if raise_error_on_missing_prop:
+            #     print("Warning: Skipping a self-edge")
+            # continue
 
         # Fetch properties
         for ep in ep_types.keys():
@@ -101,7 +105,7 @@ def from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
             if weight_prop in e_prop.keys():
                 g.adjacency[v1_num, v2_num] = e_prop[weight_prop]
                 g.adjacency[v2_num, v1_num] = e_prop[weight_prop]
-            elif error_mode:
+            elif raise_error_on_missing_prop:
                 raise KeyError("Weight Property '{}' absent from edge {}".format( \
                                weight_prop, e_names[ei]))
             else:

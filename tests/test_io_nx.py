@@ -7,7 +7,7 @@ import pytest
 
 
         
-def basic_from_nx(error_mode):
+def basic_from_nx(raise_error_on_missing_prop):
     "Basic test for main functionality"
     # Should look like methane except the weightings are meaningless
     ng = networkx.Graph()
@@ -30,31 +30,20 @@ def basic_from_nx(error_mode):
     ng.edges['C1', 'H3']['bond'] = True
     ng.edges['C1', 'H4']['bond'] = True
 
-    try:
-        t = tg.io.from_nx(ng,
-                          adj_type=np.float,
-                          weight_prop='weight',
-                          vp_types={'element': np.object, 'atomic number': np.int},
-                          ep_types={'bond': np.bool},
-                          error_mode=error_mode
-        )
-        ng2 = tg.io.to_nx(t, weight_prop='weight')
-    except:
-        assert(False)
+
+    t = tg.io.from_nx(ng,
+                      adj_type=np.float,
+                      weight_prop='weight',
+                      vp_types={'element': np.object, 'atomic number': np.int},
+                      ep_types={'bond': np.bool},
+                      raise_error_on_missing_prop=raise_error_on_missing_prop
+    )
+    ng2 = tg.io.to_nx(t, weight_prop='weight')
     return ng, t, ng2
-
-
-
-
-@pytest.mark.xfail
-def test_fail_from_nx():
-    "Does not gracefully handle the conversion"
-    ng, t, ng2 = basic_from_nx(error_mode=True)
-
 
 def test_basic_from_nx():
     "Should succeed to convert a graph back and forth"
-    ng, t, ng2 = basic_from_nx(error_mode=False)
+    ng, t, ng2 = basic_from_nx(raise_error_on_missing_prop=False)
 
     # Assertion statements...
     assert(ng.order() == ng2.order())
@@ -120,8 +109,23 @@ def test_nx_modification():
 
     # Add the same node and edge in t
     t.add_node(weight=5)
-    t.adjacency[2, 3] = 5
-    t.adjacency[3, 2] = 5
+    t[2, 3] = 5
+    t[3, 2] = 5
     
     t2 = tg.io.from_nx(ng, weight_prop='weight')
     assert(np.all(t.adjacency == t2.adjacency))
+
+
+# Make sure errors are raised properly
+
+def test_fail_from_nx():
+    "Does not gracefully handle the conversion"
+    with pytest.raises(KeyError):
+        ng, t, ng2 = basic_from_nx(raise_error_on_missing_prop=True)
+
+def test_self_loop():
+    ng = networkx.Graph()
+    ng.add_node(0)
+    ng.add_edge(0, 0, weight=1) # self edge
+    with pytest.raises(ValueError):
+        t = tg.io.from_nx(ng, weight_prop='weight')
