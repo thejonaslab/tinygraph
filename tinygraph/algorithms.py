@@ -65,18 +65,18 @@ def get_min_cycles(tg):
         # to that node.
         q = Queue()
         cycle_found = False
-        init_path = set([i])
+        init_path = {i,}
         for j in tg.get_neighbors(i):
             q.put((j, init_path))
-        while q.qsize() > 0 and not cycle_found:
+        while q.qsize() > 1 and not cycle_found:
             currentN, path = q.get()
             new_path = path.copy()
             new_path.add(currentN)
             for j in tg.get_neighbors(currentN):
-                if len(new_path) > 2 and j == i:
+                if not j in new_path:
+                    q.put((j,new_path))
+                elif j == i and len(new_path) > 2:
                     cc = new_path
                     cycle_found = True
-                elif not j in new_path:
-                    q.put((j,new_path))
         cycles.append(cc)
     return cycles
