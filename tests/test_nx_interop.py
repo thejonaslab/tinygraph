@@ -7,8 +7,7 @@ import pytest
 
 
         
-@pytest.mark.xfail
-def basic_from_nx():
+def basic_from_nx(error_mode):
     "Basic test for main functionality"
     # Should look like methane except the weightings are meaningless
     ng = networkx.Graph()
@@ -31,26 +30,36 @@ def basic_from_nx():
     ng.edges['C1', 'H3']['bond'] = True
     ng.edges['C1', 'H4']['bond'] = True
 
-    t = tg.io.tg_from_nx(ng,
-                         adj_type=np.float,
-                         weight_prop='weight',
-                         vp_types={'element': np.object, 'atomic number': np.int},
-                         ep_types={'bond': np.bool},
-                         error_mode=False
-    )
-    ng2 = tg.io.tg_to_nx(t, weight_prop='weight')
+    try:
+        t = tg.io.from_nx(ng,
+                          adj_type=np.float,
+                          weight_prop='weight',
+                          vp_types={'element': np.object, 'atomic number': np.int},
+                          ep_types={'bond': np.bool},
+                          error_mode=error_mode
+        )
+        ng2 = tg.io.to_nx(t, weight_prop='weight')
+    except:
+        assert(False)
     return ng, t, ng2
 
-# @pytest.mark.xfail
+
+
+
+@pytest.mark.xfail
+def test_fail_from_nx():
+    "Does not gracefully handle the conversion"
+    ng, t, ng2 = basic_from_nx(error_mode=True)
+
+
 def test_basic_from_nx():
-    ng, t, ng2 = basic_from_nx()
+    "Should succeed to convert a graph back and forth"
+    ng, t, ng2 = basic_from_nx(error_mode=False)
 
     # Assertion statements...
     assert(ng.order() == ng2.order())
     assert(ng.size()  == ng2.size())
     assert(ng.nodes.keys()   == ng2.nodes.keys())
-
-    # Add more careful stuff too..
 
     # Check vertex properties up to 'name'
     # But new entries can be produced
@@ -72,8 +81,9 @@ def test_basic_from_nx():
             else:
                 assert(prop == 'weight')
 
-# @pytest.mark.xfail
+
 def test_triangle():
+    "Makes a cycle graph and checks for perservation of the adjacency matrix"
     t = tg.TinyGraph(3, vp_types={'name': np.str})
     t[0, 1] = 1
     t[1, 2] = 1.1
@@ -83,18 +93,35 @@ def test_triangle():
     t.v['name'][1] = 'b'
     t.v['name'][2] = 'c'
 
-    ng = tg.io.tg_to_nx(t, weight_prop = 'weight')
-    t2 = tg.io.tg_from_nx(ng, weight_prop='weight', vp_types={'name': np.str})
+    ng = tg.io.to_nx(t, weight_prop = 'weight')
+    t2 = tg.io.from_nx(ng, weight_prop='weight', vp_types={'name': np.str})
 
     assert(np.all(t.adjacency == t2.adjacency))
     assert(np.all(t.v['name'] == t2.v['name']))
 
-# @pytest.mark.xfail
 def test_vanishing_edge():
-    """Current behavior is for 0-weighted edges to vanish"""
+    "Current behavior is for 0-weighted edges to vanish"
     t = tg.TinyGraph(2)
     t[0, 1] = 0
-    ng = tg.io.tg_to_nx(t)
-    t2 = tg.io.tg_from_nx(ng)
+    ng = tg.io.to_nx(t)
+    t2 = tg.io.from_nx(ng)
 
     assert (np.all(t2.adjacency == 0))
+
+
+def test_nx_modification():
+    "Ensure modifications behave the same way"
+    t = tg.TinyGraph(3)
+
+    # Add a new node and edge to ng
+    ng = tg.io.to_nx(t, weight_prop = 'weight')
+    ng.add_node(3, name=3)
+    ng.add_edge(2, 3, weight=5)
+
+    # Add the same node and edge in t
+    t.add_node(weight=5)
+    t.adjacency[2, 3] = 5
+    t.adjacency[3, 2] = 5
+    
+    t2 = tg.io.from_nx(ng, weight_prop='weight')
+    assert(np.all(t.adjacency == t2.adjacency))

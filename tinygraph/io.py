@@ -7,7 +7,7 @@ import tinygraph as tg
 # For slightly cleaner type inference
 import numbers
 
-def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
+def from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={},
                error_mode=True):
     """
     Initialize a TinyGraph instance from a networkx graph instance.
@@ -56,7 +56,7 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
             if vp in v_prop.keys():
                 g.v[vp][vi] = v_prop[vp]
             elif error_mode:
-                raise KeyError("Property {} absent from vertex {}".format( \
+                raise KeyError("Property '{}' absent from vertex {}".format( \
                                 vp, v_names[vi]))
 
             # Default values
@@ -112,7 +112,7 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
     return g
 
 
-def tg_to_nx(g, weight_prop=None):
+def to_nx(g, weight_prop=None):
     """
     Get a networkx copy of the current graph.
     Grabs all the properties it can find and uses the node_names property for node names.
