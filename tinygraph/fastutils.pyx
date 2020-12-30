@@ -126,6 +126,9 @@ cpdef get_connected_components(tg):
             component is given by a set of the nodes in the component.
     """
 
+    if tg.node_N == 0:
+        return []
+    
     comp_array = np.ones(tg.node_N, dtype=np.int32) * -1
     _get_connected_components(tg.adjacency != tinygraph.default_zero(tg.adjacency.dtype),
                               comp_array)
