@@ -113,6 +113,9 @@ def test_add_props():
     assert len(g.v) == 0
 
 def test_get_neighbors():
+    """
+    Simple test of getting the neighbors for various nodes.
+    """
     g = tg.TinyGraph(6)
     g[0,1] = 1
     g[0,2] = 1
@@ -122,9 +125,9 @@ def test_get_neighbors():
     g[3,4] = 1
     g[4,5] = 1
 
-    assert g.get_neighbors(0) == [1,2,3,5]
-    assert g.get_neighbors(1) == [0,2]
-    assert g.get_neighbors(2) == [0,1]
-    assert g.get_neighbors(3) == [0,4]
-    assert g.get_neighbors(4) == [3,5]
-    assert g.get_neighbors(5) == [0,4]
+    assert np.array_equal(g.get_neighbors(0), np.array([1,2,3,5]))
+    assert np.array_equal(g.get_neighbors(1), np.array([0,2]))
+    assert np.array_equal(g.get_neighbors(2), np.array([0,1]))
+    assert np.array_equal(g.get_neighbors(3), np.array([0,4]))
+    assert np.array_equal(g.get_neighbors(4), np.array([3,5]))
+    assert np.array_equal(g.get_neighbors(5), np.array([0,4]))

@@ -335,8 +335,9 @@ class TinyGraph:
         Outputs:
             neighbors ([int]): A list of the neighbor nodes.
         """
-        neighbors = []
-        for i, w in enumerate(self.adjacency[n]):
-            if not i == n and not w == 0:
-                neighbors.append(i)
+        neighbors = np.argwhere(self.adjacency[n] != \
+                                default_zero(self.adjacency.dtype)).flatten()
+        # for i, w in enumerate(self.adjacency[n]):
+        #     if not i == n and not w == 0:
+        #         neighbors.append(i)
         return neighbors

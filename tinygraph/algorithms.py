@@ -21,7 +21,6 @@ def get_connected_components(tg):
     while unseen:
         # While there are still unvisited nodes, start from an unvisited node
         # and explore its connected component.
-        print(unseen)
         comp = set()
         bfs = set()
         for start in unseen:
@@ -32,7 +31,6 @@ def get_connected_components(tg):
             # connected component set and adding its neighbors to the set to 
             # explore next.
             current = bfs.pop()
-            print(current)
             unseen.remove(current)
             comp.add(current)
             for n in tg.get_neighbors(current):
