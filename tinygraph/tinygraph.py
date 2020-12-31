@@ -416,3 +416,38 @@ class TinyGraph:
         #     if not i == n and not w == 0:
         #         neighbors.append(i)
         return neighbors
+
+    def edges(self, weight = False, edge_props = []):
+        """
+        Get a list of the edges by endpoint nodes, optionally with their weight 
+        and some properties.
+
+        Inputs:
+            weight (bool): Whether to return the weight of each edge. By default
+                this if false and the weight is not returned.
+            edge_props ([string]): A list of edge properties to return, by name.
+                By default this is empty and no properties are returned. Must be
+                a list of existing properties.
+
+        Outputs:
+            edges ([edge]): A list of edges, where each edge is represented by a
+                tuple. The first two elements of the tuple are the endpoints of
+                the edge. If weights is true, the third element is the weight of
+                the edge. If edge_props is not empty, a dictionary mapping the 
+                properties provided to the value for the edge is the final 
+                element of the tuple.
+        """
+        edges = []
+        for i, j in np.argwhere(self.adjacency != 
+                                    default_zero(self.adjacency.dtype)):
+            if i < j:
+                e = (i, j)
+                if weight:
+                    e += (self[i,j],)
+                if edge_props:
+                    d = {}
+                    for p in edge_props:
+                        d[p] = self.e[p][i,j]
+                    e += (d,)
+                edges.append(e)
+        return edges
