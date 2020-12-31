@@ -362,7 +362,7 @@ class TinyGraph:
 
         return newGraph
 
-    def get_vert_props(self, n, vert_props = []):
+    def get_vert_props(self, n, vert_props = None):
         """
         Get the properties at a given vertex.
 
@@ -375,12 +375,14 @@ class TinyGraph:
             props (string:prop_type): A dictionary mapping each of the vertex
                 property names to the property at the input vertex.
         """
+        if vert_props is None:
+            vert_props = self.v.keys()
         props = {}
         for key in vert_props:
             props[key] = self.v[key][n]
         return props
 
-    def get_edge_props(self, n1, n2, edge_props = []):
+    def get_edge_props(self, n1, n2, edge_props = None):
         """
         Get the properties at a given edge.
 
@@ -394,6 +396,8 @@ class TinyGraph:
             props (string:prop_type): A dictionary mapping each of the edge
                 property names to the property at the input edge.
         """
+        if edge_props is None:
+            edge_props = self.e.keys()
         props = {}
         for key in edge_props:
             props[key] = self.e[key][n1,n2]
@@ -490,27 +494,3 @@ class TinyGraph:
             n = (i, self.get_vert_props(i,vert_props),)
             nodes.append(n)
         return nodes
-
-    def permute(self, perm):
-        """
-        Permute the vertices of the graph to create a new TinyGraph instance.
-
-        Inputs:
-            perm (map): A mapping from old vertices to new vertices, such that 
-                perm[old_vertex] = new_vertex. 
-
-        Outputs:
-            g (TinyGraph): A new TinyGraph instance with each vertex, and its
-                corresponding vertex and edge properties, permuted.
-        """
-        g = TinyGraph(self.__node_N, self.adjacency.dtype, 
-                        {p:val.dtype for p, val in self.v.items()},
-                        {p:val.dtype for p, val in self.e.items()})
-        for (e1, e2, w, d) in self.edges(weight=True, edge_props=self.e.keys()):
-            g[perm[e1],perm[e2]] = w 
-            for prop, val in d.items():
-                g.e[prop][perm[e1], perm[e2]] = val
-        for ind, d in self.vertices(vert_props=self.v.keys()):
-            for prop, val in d.items():
-                g.v[prop][perm[ind]] = val
-        return g

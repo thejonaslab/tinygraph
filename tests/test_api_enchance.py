@@ -1,5 +1,5 @@
 import tinygraph as tg 
-from tinygraph.util import graph_equality
+from tinygraph.util import graph_equality, permute
 import numpy as np
 import pytest
 
@@ -100,9 +100,9 @@ def test_permute():
     g1.e['color2'][2,3] = 4
     g2.e['color2'][2,1] = 4
 
-    pG11 = g1.permute([3,4,1,2,0])
-    pG12 = g1.permute([4,3,1,2,0])
-    pG13 = pG11.permute([4,2,3,0,1])
+    pG11 = permute(g1, [3,4,1,2,0])
+    pG12 = permute(g1, [4,3,1,2,0])
+    pG13 = permute(pG11, [4,2,3,0,1])
 
     assert not graph_equality(g2, pG11)
     assert graph_equality(g2, pG12)
