@@ -5,10 +5,8 @@ import networkx
 import tinygraph as tg
 import pytest
 
-
-        
 def basic_from_nx(raise_error_on_missing_prop):
-    "Basic test for main functionality"
+    """Basic test for main functionality"""
     # Should look like methane except the weightings are meaningless
     ng = networkx.Graph()
     ng.add_weighted_edges_from([ \
@@ -34,21 +32,22 @@ def basic_from_nx(raise_error_on_missing_prop):
     t = tg.io.from_nx(ng,
                       adj_type=np.float,
                       weight_prop='weight',
+                      vp_for_node_name='name',
                       vp_types={'element': np.object, 'atomic number': np.int},
                       ep_types={'bond': np.bool},
                       raise_error_on_missing_prop=raise_error_on_missing_prop
     )
-    ng2 = tg.io.to_nx(t, weight_prop='weight')
+    ng2 = tg.io.to_nx(t, weight_prop='weight', vp_for_node_name='name')
     return ng, t, ng2
 
 def test_basic_from_nx():
-    "Should succeed to convert a graph back and forth"
+    """Should succeed to convert a graph back and forth"""
     ng, t, ng2 = basic_from_nx(raise_error_on_missing_prop=False)
 
     # Assertion statements...
     assert(ng.order() == ng2.order())
     assert(ng.size()  == ng2.size())
-    assert(ng.nodes.keys()   == ng2.nodes.keys())
+    assert(ng.nodes.keys() == ng2.nodes.keys())
 
     # Check vertex properties up to 'name'
     # But new entries can be produced
@@ -72,7 +71,7 @@ def test_basic_from_nx():
 
 
 def test_triangle():
-    "Makes a cycle graph and checks for perservation of the adjacency matrix"
+    """Makes a cycle graph and checks for perservation of the adjacency matrix"""
     t = tg.TinyGraph(3, vp_types={'name': np.str})
     t[0, 1] = 1
     t[1, 2] = 1.1
@@ -85,25 +84,17 @@ def test_triangle():
     ng = tg.io.to_nx(t, weight_prop = 'weight')
     t2 = tg.io.from_nx(ng, weight_prop='weight', vp_types={'name': np.str})
 
-    assert(np.all(t.adjacency == t2.adjacency))
-    assert(np.all(t.v['name'] == t2.v['name']))
-
-def test_vanishing_edge():
-    "Current behavior is for 0-weighted edges to vanish"
-    t = tg.TinyGraph(2)
-    t[0, 1] = 0
-    ng = tg.io.to_nx(t)
-    t2 = tg.io.from_nx(ng)
-
-    assert (np.all(t2.adjacency == 0))
+    # assert(np.all(t.adjacency == t2.adjacency))
+    # assert(np.all(t.v['name'] == t2.v['name']))
+    assert(tg.util.graph_equality(t, t2))
 
 
 def test_nx_modification():
-    "Ensure modifications behave the same way"
+    """Ensure modifications behave the same way"""
     t = tg.TinyGraph(3)
 
     # Add a new node and edge to ng
-    ng = tg.io.to_nx(t, weight_prop = 'weight')
+    ng = tg.io.to_nx(t, weight_prop = 'weight', vp_for_node_name=None)
     ng.add_node(3, name=3)
     ng.add_edge(2, 3, weight=5)
 
@@ -111,21 +102,71 @@ def test_nx_modification():
     t.add_node(weight=5)
     t[2, 3] = 5
     t[3, 2] = 5
-    
-    t2 = tg.io.from_nx(ng, weight_prop='weight')
-    assert(np.all(t.adjacency == t2.adjacency))
 
+    t2 = tg.io.from_nx(ng, weight_prop='weight', vp_for_node_name=None)
+    assert(np.all(t.adjacency == t2.adjacency))
+    assert(tg.util.graph_equality(t, t2))
+
+# Beware! Test cases that highlight potentially counter-intuitive behavior!
+def test_vanishing_edge():
+    """Current behavior is for 0-weighted edges to vanish"""
+    t = tg.TinyGraph(2)
+    t[0, 1] = 0
+    ng = tg.io.to_nx(t)
+    t2 = tg.io.from_nx(ng)
+
+    assert (np.all(t2.adjacency == 0))
+
+def test_default_values():
+    """
+    Test/demonstrate the default value behavior when errors are not raised.
+    """
+    g = networkx.Graph()
+    g.add_node('a', color=0)
+    g.add_node('b')
+    g.add_node('c')
+
+    g.add_edge('a', 'b', weight=3)
+    g.add_edge('b', 'c')
+
+    t = tg.io.from_nx(g,
+                      weight_prop='weight',
+                      vp_for_node_name='name',
+                      vp_types={'color': np.int}, ep_types={'weight': np.int},
+                      raise_error_on_missing_prop=False)
+
+    g2 = tg.io.to_nx(t,
+                     weight_prop='weight',
+                     vp_for_node_name='name')
+
+    # The nodes and edges are unchanged
+    assert(list(g.nodes.keys()) == list(g2.nodes.keys()))
+    assert(list(g.edges.keys()) == list(g2.edges.keys()))
+
+    # But default values have been filled in
+    assert(g.nodes.data() != g2.nodes.data())
+    assert('color' not in g.nodes['b'].keys())
+    assert('color' in     g2.nodes['b'].keys())
+    assert(g2.edges['b', 'c']['weight'] == 1)
 
 # Make sure errors are raised properly
-
 def test_fail_from_nx():
-    "Does not gracefully handle the conversion"
+    """Complains for a conversion missing a property on a node"""
     with pytest.raises(KeyError):
         ng, t, ng2 = basic_from_nx(raise_error_on_missing_prop=True)
 
 def test_self_loop():
+    """Self-edges always raise ValueErrors"""
     ng = networkx.Graph()
     ng.add_node(0)
     ng.add_edge(0, 0, weight=1) # self edge
     with pytest.raises(ValueError):
         t = tg.io.from_nx(ng, weight_prop='weight')
+
+def test_bad_vertex_request():
+    t = tg.TinyGraph(3)
+    t[0, 1] = 2
+    t[1, 2] = 4
+
+    with pytest.raises(KeyError):
+        ng = tg.io.to_nx(t, vp_subset=['color'], ep_subset=['weight'])
