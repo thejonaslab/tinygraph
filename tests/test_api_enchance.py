@@ -1,5 +1,5 @@
 import tinygraph as tg 
-from util import graph_equality
+from tinygraph.util import graph_equality
 import numpy as np
 import pytest
 
