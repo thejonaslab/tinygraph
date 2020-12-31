@@ -48,6 +48,10 @@ class EdgeProxy:
         self.__g = g
         self.__props = np.zeros((self.__g.node_N, self.__g.node_N), dtype=dtype)
 
+    @property
+    def dtype(self):
+        return self.__props.dtype
+
     def __setitem__(self, key, value):
         """
         Set an edge's property.
@@ -451,3 +455,27 @@ class TinyGraph:
                     e += (d,)
                 edges.append(e)
         return edges
+
+    def permute(self, perm):
+        """
+        Permute the vertices of the graph to create a new TinyGraph instance.
+
+        Inputs:
+            perm (map): A mapping from old vertices to new vertices, such that 
+                perm[old_vertex] = new_vertex. 
+
+        Outputs:
+            g (TinyGraph): A new TinyGraph instance with each vertex, and its
+                corresponding vertex and edge properties, permuted.
+        """
+        g = TinyGraph(self.__node_N, self.adjacency.dtype, 
+                        {p:val.dtype for p, val in self.v.items()},
+                        {p:val.dtype for p, val in self.e.items()})
+        for (e1, e2, w, d) in self.edges(weight=True, edge_props=self.e.keys()):
+            g[perm[e1],perm[e2]] = w 
+            for prop, val in d.items():
+                g.e[prop][perm[e1], perm[e2]] = val
+        for ind in range(self.__node_N):
+            for prop, val in self.get_vert_props(ind):
+                g.v[prop][perm[ind]] = val
+        return g
