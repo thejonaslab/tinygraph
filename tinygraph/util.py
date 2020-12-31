@@ -1,6 +1,6 @@
 import numpy as np
 import tinygraph as tg
-
+from tinygraph import EdgeProxy
 
 
 
@@ -26,7 +26,7 @@ def graph_equality(g1, g2):
     
 
     for k in g1.e.keys():
-        if not np.array_equal(g1.e[k], g2.e[k]):
+        if not EdgeProxy.array_equal(g1.e[k], g2.e[k]):
             return False
 
     return True

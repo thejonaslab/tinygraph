@@ -49,6 +49,9 @@ class EdgeProxy:
         self.__props = np.zeros((self.__g.node_N, self.__g.node_N), dtype=dtype)
 
     @property
+    def props(self):
+        return self.__props
+    @property
     def dtype(self):
         return self.__props.dtype
 
@@ -96,6 +99,19 @@ class EdgeProxy:
             else:
                 return self.__props[e1, e2]
 
+    def array_equal(ep1, ep2):
+        """
+        Given two EdgeProxy objects, determine if their property arrays are 
+        equal.
+
+        Inputs:
+            ep1 (EdgeProxy): First property object.
+            ep2 (EdgeProxy): Second property object.
+
+        Outputs:
+            equal (bool): Whether the property arrays are equal.
+        """
+        return np.array_equal(ep1.props, ep2.props)
 
 class TinyGraph:
     """
@@ -473,7 +489,7 @@ class TinyGraph:
             g[perm[e1],perm[e2]] = w 
             for prop, val in d.items():
                 g.e[prop][perm[e1], perm[e2]] = val
-        for ind in range(self.__node_N):
-            for prop, val in self.get_vert_props(ind):
+        for ind, d in self.vertices(vert_props=self.v.keys()):
+            for prop, val in d.items():
                 g.v[prop][perm[ind]] = val
         return g
