@@ -98,6 +98,22 @@ class EdgeProxy:
                 raise Exception("No such edge.")
             else:
                 return self.__props[e1, e2]
+    
+    def zero_out(self, e1, e2):
+        """
+        Zero out an edge which has been removed. This ensures that if an edge is
+        removed and then later re-added, the original property value will have
+        been removed, and not saved.
+        
+        Inputs:
+            e1 (int): First endpoints of edge to remove.
+            e2 (int): Second endpoints of edge to remove.
+
+        Outputs:
+            None
+        """
+        self.__props[e1, e2] = default_zero(self.dtype)
+        self.__props[e2, e1] = default_zero(self.dtype)
 
     def array_equal(ep1, ep2):
         """
@@ -283,7 +299,8 @@ class TinyGraph:
     def __setitem__(self, key, newValue):
         """
         Create an edge or change the weight of an existing edge. This operation
-        is fast. Edges are undirected.
+        is fast. Edges are undirected. If an existing edge is set to its zero 
+        value, it is removed, setting all of its property values to their zeros.
 
         Inputs:
             key (int, int): Endpoint nodes of edge.
@@ -296,8 +313,12 @@ class TinyGraph:
             raise IndexError("Must include both endpoints of edge.")
         elif len(key) > 2:
             raise IndexError("Too many endpoints given.")
-        self.adjacency[key[0]][key[1]] = newValue
-        self.adjacency[key[1]][key[0]] = newValue
+        e1, e2 = key
+        self.adjacency[e1][e2] = newValue
+        self.adjacency[e2][e1] = newValue
+        if newValue == default_zero(self.adjacency.dtype):
+            for k, ep in self.e.items():
+                self.e[k].zero_out(e1,e2)
 
     def __getitem__(self, key):
         """

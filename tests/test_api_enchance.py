@@ -1,11 +1,7 @@
 import tinygraph as tg 
 from util import graph_equality
 import numpy as np
-
-def test_remove_edge():
-    """
-    Simple test of removing edges.
-    """
+import pytest
 
 def test_vertices():
     """
@@ -57,6 +53,32 @@ def test_edges():
     for i, j, d in g.edges(edge_props = ['elem']):
         assert len(d) == 1
         assert d['elem'] == elem[(i,j)] 
+
+def test_remove_edge():
+    """
+    Simple test of removing edges.
+    """
+    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32, 
+                                                'elem': np.bool})
+    g[0,4] = 10
+    g[1,0] = 20
+    g[2,1] = 30
+    g[3,2] = 40
+    g[4,3] = 50
+    g.e['color'][0,1] = 3
+    g.e['color'][1,2] = 4
+    g.e['color'][2,3] = 5
+    g.e['color'][3,4] = 6
+    g.e['color'][4,0] = 1
+    g[0,4] = 0
+    g[1,0] = 0
+    with pytest.raises(Exception, match='No such edge.'):
+        g.e['color'][0,1]
+    assert g.e['color'][1,2] == 4
+    assert g.e['color'][2,3] == 5
+    assert g.e['color'][3,4] == 6
+    with pytest.raises(Exception, match='No such edge.'):
+        g.e['color'][4,0]
 
 def test_permute():
     """
