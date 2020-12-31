@@ -36,6 +36,7 @@ def test_graph_properties():
     g1.v['color'][2] = 5
     g1.v['color'][3] = 8
 
+    g1[2,3] = 1
     g1.e['color2'][2, 3] = 10 
 
     assert g1.v['color'][2] == 5
