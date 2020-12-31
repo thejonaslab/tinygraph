@@ -83,16 +83,6 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
                 print("Warning: Skipping a self-edge")
             continue
 
-        # Fetch properties
-        for ep in ep_types.keys():
-            if ep in e_prop.keys():
-                # Two entries because undirected graph
-                g.e[ep][v1_num, v2_num] = e_prop[ep]
-                g.e[ep][v2_num, v1_num] = e_prop[ep]
-            else:
-                raise KeyError("Property {} absent from edge {}".format( \
-                                ep, e_names[ei]))
-
         # Build adjacency matrix with possibly weighted entries
         if weight_prop is None:
             g.adjacency[v1_num, v2_num] = 1
@@ -109,6 +99,17 @@ def tg_from_nx(ng, adj_type=np.int32, weight_prop=None, vp_types={}, ep_types={}
                 # with weight 0? (in which case we should change this to -1)
                 g.adjacency[v1_num, v2_num] = 0
                 g.adjacency[v2_num, v1_num] = 0
+
+        # Fetch properties
+        for ep in ep_types.keys():
+            if ep in e_prop.keys():
+                # Two entries because undirected graph
+                g.e[ep][v1_num, v2_num] = e_prop[ep]
+                g.e[ep][v2_num, v1_num] = e_prop[ep]
+            else:
+                raise KeyError("Property {} absent from edge {}".format( \
+                                ep, e_names[ei]))
+     
     return g
 
 
