@@ -66,28 +66,6 @@ def test_items():
     assert(t.v['name'][1] == 'b')
     assert(t.v['name'][2] == 'c')
 
-
-
-# def test_add_edge():
-#     """
-#     Add an edge 
-#     """
-
-#     g = tg.TinyGraph(10, np.float32, ep_types={'color' : np.int32})
-
-#     g.add_edge(1, 2, 5.0)
-
-#     assert g[1, 2] == 5.0
-    
-#     g.add_edge(3, 4, 2.0, color=10)
-
-#     assert g[3, 4] == 2.0
-#     assert g.e['color'][3, 4] == 10
-
-    
-#     assert g.get_edge_props(3,4)  == {'color' : 10}
-
-
 def test_add_props():
     """
     Simple test of adding and removing properties

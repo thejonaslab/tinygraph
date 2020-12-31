@@ -299,31 +299,6 @@ class TinyGraph:
             raise IndexError("Too many endpoints given.")
         return self.adjacency[key[0]][key[1]]
 
-    # def add_edge(self, i, j, weight=None, props={}, **kwargs):
-    #     """
-
-    #     ## FIXME clean up this docstring
-
-    #     Convenience function for adding an edge. kw arguments are
-    #     turned into properties as well. 
-
-    #     """
-
-    #     if self.adjacency[i, j] != default_zero(self.adjacency.dtype):
-    #         raise ValueError(f"Edge ({i, j}) already exists")
-        
-    #     if weight is None:
-    #         weight = default_one(self.adjacency.dtype)
-
-    #     combined_props = {**props, **kwargs}
-
-    #     self.adjacency[i, j] = weight
-    #     self.adjacency[j, i] = weight
-
-    #     for k, v in combined_props.items():
-    #         self.e[k][i, j] = v
-                    
-
     def copy(self):
         """
         Get a copy of the TinyGraph instance.
@@ -350,37 +325,41 @@ class TinyGraph:
 
         return newGraph
 
-    def get_vert_props(self, n):
+    def get_vert_props(self, n, vert_props = []):
         """
         Get the properties at a given vertex.
 
         Inputs:
             n (int): Vertex to get properties of.
+            vert_props ([str]): A list of the vertex properties to return, by
+                name.
 
         Outputs:
             props (string:prop_type): A dictionary mapping each of the vertex
                 property names to the property at the input vertex.
         """
         props = {}
-        for key, arr in self.v.items():
-            props[key] = arr[n]
+        for key in vert_props:
+            props[key] = self.v[key][n]
         return props
 
-    def get_edge_props(self, n1, n2):
+    def get_edge_props(self, n1, n2, edge_props = []):
         """
         Get the properties at a given edge.
 
         Inputs:
             n1 (int): Endpoint node 1 of edge to get properties of.
             n2 (int): Endpoint node 2 of edge to get properties of.
+            edge_props ([str]): A list of the edge properties to return, by
+                name.
 
         Outputs:
             props (string:prop_type): A dictionary mapping each of the edge
                 property names to the property at the input edge.
         """
         props = {}
-        for key, arr in self.e.items():
-            props[key] = arr[n1,n2]
+        for key in edge_props:
+            props[key] = self.e[key][n1,n2]
         return props
 
     def __repr__(self):
@@ -394,14 +373,12 @@ class TinyGraph:
             rep (str): TinyGraph Representation.
         """
         rep = "Vertices:\n"
-        for i in range(self.__node_N):
-            rep += str(i) + ": " + str(self.get_vert_props(i)) + "\n"
+        for i, props in self.vertices(vert_props = self.v.keys()):
+            rep += str(i) + ": " + str(props) + "\n"
         rep += "\nEdges:\n"
-        for i in range(self.__node_N-1):
-            for j in range(i+1, self.__node_N):
-                if self.adjacency[i,j]: # Change to not is None?
-                    rep += "(" + str(i) + ", " + str(j) + "): " + \
-                        str(self.get_edge_props(i,j)) + "\n"
+        for i,j,w,props in self.edges(weight = True,edge_props = self.e.keys()):
+            rep += "(" + str(i) + ", " + str(j) + "): Weight - " + str(w) +\
+                ", Props - " + str(props) + "\n"
         return rep[:-1] # strip last newline 
 
     def get_neighbors(self, n):
@@ -449,12 +426,33 @@ class TinyGraph:
                 if weight:
                     e += (self[i,j],)
                 if edge_props:
-                    d = {}
-                    for p in edge_props:
-                        d[p] = self.e[p][i,j]
+                    d = self.get_edge_props(i,j,edge_props)
                     e += (d,)
                 edges.append(e)
         return edges
+
+    def vertices(self, vert_props = []):
+        """
+        Get a list of the vertices with some of their properties.
+
+        Inputs:
+            vert_props ([string]): A list of node properties to return, by name.
+                By default this is empty and an empty map is returned. Must be
+                a list of existing properties.
+
+        Outputs:
+            nodes ([node]): A list of nodes, where each node is represented by a
+                tuple. The first element of the tuple is the node index. The 
+                second element is a map from the provided node properties to
+                the values at the node. Even when no properties are provided, a
+                map is returned, since the list of vertices is simply 0...N-1, 
+                which can be retrieved more efficiently in other ways.
+        """
+        nodes = []
+        for i in range(self.__node_N):
+            n = (i, self.get_vert_props(i,vert_props),)
+            nodes.append(n)
+        return nodes
 
     def permute(self, perm):
         """
