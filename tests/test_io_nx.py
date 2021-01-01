@@ -24,14 +24,14 @@ def test_nx_suite(test_name):
 
         # Get name if applicable
         name_arg = 'name' if 'name' in g.v.keys() else None
-        ng = tg.io.to_nx(g, weight_prop='weight', vp_for_node_name=name_arg)
+        ng = tg.io.to_nx(g, weight_prop='weight', name_prop=name_arg)
 
         # Extract data types (may be suboptimal but works..)
         vp_types = dict(map(lambda k: (k, g.v[k].dtype), g.v))
         ep_types = dict(map(lambda k: (k, g.e[k].dtype), g.e))
         g2 = tg.io.from_nx(ng,
                            adj_type=g.adjacency.dtype,
-                           weight_prop='weight', vp_for_node_name=name_arg,
+                           weight_prop='weight', name_prop=name_arg,
                            vp_types=vp_types,
                            ep_types=ep_types)
 
@@ -65,12 +65,12 @@ def basic_from_nx(raise_error_on_missing_prop):
     t = tg.io.from_nx(ng,
                       adj_type=np.float,
                       weight_prop='weight',
-                      vp_for_node_name='name',
+                      name_prop='name',
                       vp_types={'element': np.object, 'atomic number': np.int},
                       ep_types={'bond': np.bool},
                       raise_error_on_missing_prop=raise_error_on_missing_prop
     )
-    ng2 = tg.io.to_nx(t, weight_prop='weight', vp_for_node_name='name')
+    ng2 = tg.io.to_nx(t, weight_prop='weight', name_prop='name')
     return ng, t, ng2
 
 def test_basic_from_nx():
@@ -125,7 +125,7 @@ def test_nx_modification():
     t = tg.TinyGraph(3)
 
     # Add a new node and edge to ng
-    ng = tg.io.to_nx(t, weight_prop = 'weight', vp_for_node_name=None)
+    ng = tg.io.to_nx(t, weight_prop = 'weight', name_prop=None)
     ng.add_node(3, name=3)
     ng.add_edge(2, 3, weight=5)
 
@@ -134,7 +134,7 @@ def test_nx_modification():
     t[2, 3] = 5
     t[3, 2] = 5
 
-    t2 = tg.io.from_nx(ng, weight_prop='weight', vp_for_node_name=None)
+    t2 = tg.io.from_nx(ng, weight_prop='weight', name_prop=None)
     assert np.all(t.adjacency == t2.adjacency)
     assert tg.util.graph_equality(t, t2)
 
@@ -162,13 +162,13 @@ def test_default_values():
 
     t = tg.io.from_nx(g,
                       weight_prop='weight',
-                      vp_for_node_name='name',
+                      name_prop='name',
                       vp_types={'color': np.int}, ep_types={'weight': np.int},
                       raise_error_on_missing_prop=False)
 
     g2 = tg.io.to_nx(t,
                      weight_prop='weight',
-                     vp_for_node_name='name')
+                     name_prop='name')
 
     # The nodes and edges are unchanged
     assert list(g.nodes.keys()) == list(g2.nodes.keys())
@@ -202,7 +202,7 @@ def test_subset_to_nx():
     g = neighbors_graph()
     ng = tg.io.to_nx(g,
                      weight_prop='custom_weight',
-                     vp_for_node_name='name',
+                     name_prop='name',
                      vp_subset=['pet'],
                      ep_subset=['friends'])
 
@@ -221,7 +221,7 @@ def test_subset_to_nx_default_behavior():
     g = neighbors_graph()
     ng = tg.io.to_nx(g,
                      weight_prop='wait',
-                     vp_for_node_name='name',
+                     name_prop='name',
                      vp_subset=None,
                      ep_subset=None)
 
@@ -242,7 +242,7 @@ def test_subset_to_nx_default_behavior_plain():
     g = neighbors_graph()
     ng = tg.io.to_nx(g,
                      weight_prop=None,
-                     vp_for_node_name=None,
+                     name_prop=None,
                      vp_subset=None,
                      ep_subset=None)
 
@@ -285,6 +285,6 @@ def test_bad_edge_subset():
     with pytest.raises(KeyError):
         ng = tg.io.to_nx(g,
                          weight_prop='weight',
-                         vp_for_node_name='name',
+                         name_prop='name',
                          vp_subset=['color'],
                          ep_subset=['friends']) # no friends :/

@@ -9,7 +9,7 @@ import numbers
 
 def from_nx(ng, adj_type=np.int32,
             weight_prop=None,
-            vp_for_node_name=None,
+            name_prop=None,
             vp_types={}, ep_types={},
             raise_error_on_missing_prop=True):
     """
@@ -29,8 +29,8 @@ def from_nx(ng, adj_type=np.int32,
             Name of the weight property in the networkx graph (put in adj matrix).
             If None, value defaults to 1.
 
-        vp_for_node_name:
-            vertex property to put the node name into (e.g., 'name').
+        name_prop:
+            vertex property to put the networkx node name into (e.g., 'name').
             None results in discarding the vertex name.
 
         vp_types (dictionary of prop(string)->type):
@@ -56,8 +56,8 @@ def from_nx(ng, adj_type=np.int32,
     v_names = list(ng.nodes.keys())
     v_props = list(ng.nodes.values())
     v_name_to_num = dict([(vn, i) for i, vn in enumerate(ng.nodes.keys())])
-    if vp_for_node_name is not None:
-        g.v[vp_for_node_name] = np.array(v_names, dtype=np.str)
+    if name_prop is not None:
+        g.v[name_prop] = np.array(v_names, dtype=np.str)
 
     for vi in range(ng.order()):
         v_prop = v_props[vi]
@@ -126,20 +126,19 @@ def from_nx(ng, adj_type=np.int32,
     return g
 
 
-def to_nx(g, weight_prop=None, vp_for_node_name=None, vp_subset=None, ep_subset=None):
+def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
     """
     Get a networkx copy of the current graph.
     Grabs all the properties it can find and uses the node_names property for node names.
-    TODO: raise a warning in case a requested property is absent.
 
     Inputs:
         tg (TinyGraph): graph to translate to networkx.
         weight_prop:
             key to put the adjacency matrix values into (None to interpret as unweighted)
-        vp_for_node_name:
-            vertex property to take as the node name (e.g. 'name').
+        name_prop:
+            vertex property from g to take as the node name (e.g. 'name').
             If None is supplied, the name will be the vertex number.
-            If an invalid string is passed, a KeyError will be raised
+            If an invalid string (not a key of g.v) is passed, a KeyError will be raised
         vp_subset:
             Vertex properties to take; None to take all.
             A KeyError will be raised if not all are found.
@@ -159,22 +158,22 @@ def to_nx(g, weight_prop=None, vp_for_node_name=None, vp_subset=None, ep_subset=
     ng = networkx.Graph()
 
     # Fetch nodes' names
-    if vp_for_node_name is None:
+    if name_prop is None:
         # Default to indices
         node_names = list(range(g.node_N))
-    elif vp_for_node_name in g.v.keys():
+    elif name_prop in g.v.keys():
         # Take the passed vertex property if avaliable
-        node_names = [g.v[vp_for_node_name][i] for i in range(g.node_N)]
+        node_names = [g.v[name_prop][i] for i in range(g.node_N)]
     else:
-        raise KeyError(f"Error: to_nx could not find vp_for_node_name "
-                       f"({vp_for_node_name}) for the passed tinygraph")
+        raise KeyError(f"Error: to_nx could not find name_prop "
+                       f"({name_prop}) for the passed tinygraph")
 
     # Make None to mean the full set for convenience
-    # But, if vp_for_node_name is set, ignore the name
+    # But, if name_prop is set, ignore the name
     if vp_subset is None:
         vp_subset = list(g.v.keys())
-    if vp_for_node_name and vp_for_node_name in vp_subset:
-        vp_subset.remove(vp_for_node_name)
+    if name_prop and name_prop in vp_subset:
+        vp_subset.remove(name_prop)
 
     # If weight_prop is set, add the edge weight property
     if ep_subset is None:
