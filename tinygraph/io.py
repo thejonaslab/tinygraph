@@ -168,13 +168,15 @@ def to_nx(g, weight_prop=None, vp_for_node_name=None, vp_subset=None, ep_subset=
     else:
         raise KeyError(f"Error: to_nx could not find vp_for_node_name "
                        f"({vp_for_node_name}) for the passed tinygraph")
-    # # Old code (hard-coded 'name' or nothing but nothing else)
-    # node_names = [g.v[vp_for_node_name][i] for i in range(g.node_N)] \
-    #     if vp_for_node_name in g.v.keys() else list(range(g.node_N))
 
     # Make None to mean the full set for convenience
+    # But, if vp_for_node_name is set, ignore the name
     if vp_subset is None:
-        vp_subset = g.v.keys()
+        vp_subset = list(g.v.keys())
+    if vp_for_node_name and vp_for_node_name in vp_subset:
+        vp_subset.remove(vp_for_node_name)
+
+    # If weight_prop is set, add the edge weight property
     if ep_subset is None:
         ep_subset = g.e.keys()
 
@@ -210,7 +212,8 @@ def to_nx(g, weight_prop=None, vp_for_node_name=None, vp_subset=None, ep_subset=
                                        f"edge property {ep}.")
 
                 # Now write to the `weight_prop` property (possibly overwriting)
-                ng.edges[iname, jname][weight_prop] = edge_val
+                if weight_prop is not None:
+                    ng.edges[iname, jname][weight_prop] = edge_val
 
     return ng
 
