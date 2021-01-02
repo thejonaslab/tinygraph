@@ -2,7 +2,6 @@ from rdkit import Chem
 from tinygraph import io
 import tinygraph.io.rdkit
 import pytest
-import pickle
 
 simple_smiles = ['C', 'CC', 'C=C', 'C#C'
                  'COC', 'CCO', 'CC=O', 
