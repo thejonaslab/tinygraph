@@ -23,7 +23,7 @@ setup(
     description='Lightweight Python library for small graphs',
     url='https://github.com/thejonaslab/tinygraph',
     license='MIT',
-    packages=['tinygraph'], 
+    packages=find_packages(),
     # install_requires=[
     #     'Cython>=0.29.21',
     #     'numpy>=1.19.2',
