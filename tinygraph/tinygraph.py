@@ -29,6 +29,120 @@ def default_one(dtype):
         raise ValueError(f"unknown dtype {dtype}")
 
 
+class EdgeProxy:
+    """
+    EdgeProxy is a way of accessing an edge property in a graph safely.
+    EdgeProxy enforces rules onto how and when edge properties are assigned.
+    """
+
+    def __init__(self, g, prop):
+        """
+        Initialize a new EdgeProxy instance.
+
+        Inputs:
+            g (TinyGraph): The graph which EdgeProxy is accessing a property of.
+                EdgeProxy will alter one property in g.e_p.
+            property (string): The name of the property to access.
+        
+        Outputs:
+            ep (EdgeProxy): new EdgeProxy object.
+        """
+        self.__g = g
+        self.__prop = prop
+        self.__dtype = self.__g.e_p[self.__prop].dtype
+
+    @property
+    def dtype(self):
+        return self.__dtype
+
+    def __setitem__(self, key, value):
+        """
+        Set an edge's property.
+
+        Inputs:
+            key ((int, int)): Endpoints of edge to set the property of.
+            value (dtype): Value to set edge property to.
+
+        Outputs:
+            None
+        """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
+        else:
+            e1, e2 = key
+            if self.__g[e1, e2] == default_zero(self.dtype):
+                raise IndexError("No such edge.")
+            else:
+                self.__g.e_p[self.__prop][e1, e2] = value
+                self.__g.e_p[self.__prop][e2, e1] = value
+
+    def __getitem__(self, key):
+        """
+        Get an edge's property.
+
+        Inputs:
+            key ((int, int)): Endpoints of edge to get the property of.
+
+        Outputs:
+            value (dtype): Value of edge property.
+        """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
+        else:
+            e1, e2 = key
+            if self.__g[e1, e2] == default_zero(self.dtype):
+                raise IndexError("No such edge.")
+            else:
+                return self.__g.e_p[self.__prop][e1, e2]        
+
+class EdgeProxyGenerator:
+    """
+    EdgeProxyGenerator is the go between for TinyGraph and EdgeProxy. TinyGraph
+    gives its users EdgeProxyGenerators that then give them access to edges
+    through a generator EdgeProxy
+    """
+
+    def __init__(self, g):
+        """
+        Create a new Generator.
+
+        Inputs:
+            g (TinyGraph): The graph that this generator is linked to.
+
+        Outputs:
+            epg (EdgeProxyGenerator): New generator
+        """
+        self.__g = g
+
+    def keys(self):
+        return self.__g.e_p.keys()
+
+    def items(self):
+        return self.__g.e_p.items()
+
+    def __len__(self):
+        return len(self.__g.e_p)
+
+    def __contains__(self, key):
+        return key in self.__g.e_p
+
+    def __getitem__(self, key):
+        """
+        Generates an EdgeProxy object for a user to access an edge property.
+
+        Inputs:
+            key (string): The property name to access
+
+        Outputs:
+            ep (EdgeProxy): An EdgeProxy object with access to the desired 
+                property and the current graph.
+        """
+        return EdgeProxy(self.__g, key)
+
 class TinyGraph:
     """
     tinygraph is centered around our representation of graphs through numpy
@@ -61,7 +175,8 @@ class TinyGraph:
         self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
 
         self.v = {}
-        self.e = {}
+        self.e_p = {}
+        self.e = EdgeProxyGenerator(self)
         
         for k, dt in vp_types.items():
             self.add_vert_prop(k, dt)
@@ -96,10 +211,10 @@ class TinyGraph:
 
         """
         
-        if name in self.e:
+        if name in self.e_p:
             raise KeyError(f"Graph already has edge property named {name}")
         
-        self.e[name] = np.zeros((self.__node_N, self.__node_N), dtype=dtype)
+        self.e_p[name] = np.zeros((self.__node_N, self.__node_N), dtype=dtype)
 
     def remove_vert_prop(self, name):
         """
@@ -121,7 +236,7 @@ class TinyGraph:
 
         """
 
-        del self.e[name]
+        del self.e_p[name]
         
 
 
@@ -161,9 +276,9 @@ class TinyGraph:
                 self.v[key][self.__node_N] = props[key]
 
         # Reshape edge property arrays
-        for key in self.e.keys():
-            self.e[key] = np.insert(self.e[key], self.__node_N, 0, axis=0)
-            self.e[key] = np.insert(self.e[key], self.__node_N, 0, axis=1)
+        for key in self.e_p.keys():
+            self.e_p[key] = np.insert(self.e_p[key], self.__node_N, 0, axis=0)
+            self.e_p[key] = np.insert(self.e_p[key], self.__node_N, 0, axis=1)
 
         # Update the node count
         self.__node_N += 1
@@ -189,9 +304,9 @@ class TinyGraph:
             self.v[key] = np.delete(self.v[key], n)
 
         # Trim the edge property arrays
-        for key in self.e.keys():
-            self.e[key] = np.delete(self.e[key], n, axis = 0)
-            self.e[key] = np.delete(self.e[key], n, axis = 1)
+        for key in self.e_p.keys():
+            self.e_p[key] = np.delete(self.e_p[key], n, axis = 0)
+            self.e_p[key] = np.delete(self.e_p[key], n, axis = 1)
 
         # Update the node count
         self.__node_N -= 1
@@ -199,7 +314,8 @@ class TinyGraph:
     def __setitem__(self, key, newValue):
         """
         Create an edge or change the weight of an existing edge. This operation
-        is fast. Edges are undirected.
+        is fast. Edges are undirected. If an existing edge is set to its zero 
+        value, it is removed, setting all of its property values to their zeros.
 
         Inputs:
             key (int, int): Endpoint nodes of edge.
@@ -208,8 +324,17 @@ class TinyGraph:
         Outputs:
             None - modifications are made in place.
         """
-        self.adjacency[key[0]][key[1]] = newValue
-        self.adjacency[key[1]][key[0]] = newValue
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
+        e1, e2 = key
+        self.adjacency[e1, e2] = newValue
+        self.adjacency[e2, e1] = newValue
+        if newValue == default_zero(self.adjacency.dtype):
+            for k, prop in self.e_p.items():
+                self.e_p[k][e1, e2] = default_zero(prop.dtype)
+                self.e_p[k][e2, e1] = default_zero(prop.dtype)
 
     def __getitem__(self, key):
         """
@@ -221,32 +346,11 @@ class TinyGraph:
         Outputs:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
         """
+        if len(key) < 2:
+            raise IndexError("Must include both endpoints of edge.")
+        elif len(key) > 2:
+            raise IndexError("Too many endpoints given.")
         return self.adjacency[key[0]][key[1]]
-
-    # def add_edge(self, i, j, weight=None, props={}, **kwargs):
-    #     """
-
-    #     ## FIXME clean up this docstring
-
-    #     Convenience function for adding an edge. kw arguments are
-    #     turned into properties as well. 
-
-    #     """
-
-    #     if self.adjacency[i, j] != default_zero(self.adjacency.dtype):
-    #         raise ValueError(f"Edge ({i, j}) already exists")
-        
-    #     if weight is None:
-    #         weight = default_one(self.adjacency.dtype)
-
-    #     combined_props = {**props, **kwargs}
-
-    #     self.adjacency[i, j] = weight
-    #     self.adjacency[j, i] = weight
-
-    #     for k, v in combined_props.items():
-    #         self.e[k][i, j] = v
-                    
 
     def copy(self):
         """
@@ -259,7 +363,7 @@ class TinyGraph:
             newGraph (TinyGraph): Deep copy of TinyGraph instance.
         """
         v_p = {k : v.dtype for k, v in self.v.items()}
-        e_p = {k : e.dtype for k, e in self.e.items()}
+        e_p = {k : e.dtype for k, e in self.e_p.items()}
 
         newGraph = TinyGraph(self.__node_N, self.adjacency.dtype,
                              v_p, e_p)
@@ -270,41 +374,49 @@ class TinyGraph:
             
         # Set edge properties
         for key, arr in self.v.items():
-            newGraph.e[key][:] = arr
+            newGraph.e_p[key][:] = arr
 
         return newGraph
 
-    def get_vert_props(self, n):
+    def get_vert_props(self, n, vert_props = None):
         """
         Get the properties at a given vertex.
 
         Inputs:
             n (int): Vertex to get properties of.
+            vert_props ([str]): A list of the vertex properties to return, by
+                name.
 
         Outputs:
             props (string:prop_type): A dictionary mapping each of the vertex
                 property names to the property at the input vertex.
         """
+        if vert_props is None:
+            vert_props = self.v.keys()
         props = {}
-        for key, arr in self.v.items():
-            props[key] = arr[n]
+        for key in vert_props:
+            props[key] = self.v[key][n]
         return props
 
-    def get_edge_props(self, n1, n2):
+    def get_edge_props(self, n1, n2, edge_props = None):
         """
         Get the properties at a given edge.
 
         Inputs:
             n1 (int): Endpoint node 1 of edge to get properties of.
             n2 (int): Endpoint node 2 of edge to get properties of.
+            edge_props ([str]): A list of the edge properties to return, by
+                name.
 
         Outputs:
             props (string:prop_type): A dictionary mapping each of the edge
                 property names to the property at the input edge.
         """
+        if edge_props is None:
+            edge_props = self.e_p.keys()
         props = {}
-        for key, arr in self.e.items():
-            props[key] = arr[n1,n2]
+        for key in edge_props:
+            props[key] = self.e_p[key][n1,n2]
         return props
 
     def __repr__(self):
@@ -318,14 +430,12 @@ class TinyGraph:
             rep (str): TinyGraph Representation.
         """
         rep = "Vertices:\n"
-        for i in range(self.__node_N):
-            rep += str(i) + ": " + str(self.get_vert_props(i)) + "\n"
+        for i, props in self.vertices(vert_props = self.v.keys()):
+            rep += str(i) + ": " + str(props) + "\n"
         rep += "\nEdges:\n"
-        for i in range(self.__node_N-1):
-            for j in range(i+1, self.__node_N):
-                if self.adjacency[i,j]: # Change to not is None?
-                    rep += "(" + str(i) + ", " + str(j) + "): " + \
-                        str(self.get_edge_props(i,j)) + "\n"
+        for i,j,w,props in self.edges(weight = True,edge_props = self.e.keys()):
+            rep += "(" + str(i) + ", " + str(j) + "): Weight - " + str(w) +\
+                ", Props - " + str(props) + "\n"
         return rep[:-1] # strip last newline 
 
     def get_neighbors(self, n):
@@ -344,3 +454,59 @@ class TinyGraph:
         #     if not i == n and not w == 0:
         #         neighbors.append(i)
         return neighbors
+
+    def edges(self, weight = False, edge_props = []):
+        """
+        Get a list of the edges by endpoint nodes, optionally with their weight 
+        and some properties.
+
+        Inputs:
+            weight (bool): Whether to return the weight of each edge. By default
+                this if false and the weight is not returned.
+            edge_props ([string]): A list of edge properties to return, by name.
+                By default this is empty and no properties are returned. Must be
+                a list of existing properties.
+
+        Outputs:
+            edges ([edge]): A list of edges, where each edge is represented by a
+                tuple. The first two elements of the tuple are the endpoints of
+                the edge. If weights is true, the third element is the weight of
+                the edge. If edge_props is not empty, a dictionary mapping the 
+                properties provided to the value for the edge is the final 
+                element of the tuple.
+        """
+        edges = []
+        for i, j in np.argwhere(self.adjacency != 
+                                    default_zero(self.adjacency.dtype)):
+            if i < j:
+                e = (i, j)
+                if weight:
+                    e += (self[i,j],)
+                if edge_props:
+                    d = self.get_edge_props(i,j,edge_props)
+                    e += (d,)
+                edges.append(e)
+        return edges
+
+    def vertices(self, vert_props = []):
+        """
+        Get a list of the vertices with some of their properties.
+
+        Inputs:
+            vert_props ([string]): A list of node properties to return, by name.
+                By default this is empty and an empty map is returned. Must be
+                a list of existing properties.
+
+        Outputs:
+            nodes ([node]): A list of nodes, where each node is represented by a
+                tuple. The first element of the tuple is the node index. The 
+                second element is a map from the provided node properties to
+                the values at the node. Even when no properties are provided, a
+                map is returned, since the list of vertices is simply 0...N-1, 
+                which can be retrieved more efficiently in other ways.
+        """
+        nodes = []
+        for i in range(self.__node_N):
+            n = (i, self.get_vert_props(i,vert_props),)
+            nodes.append(n)
+        return nodes

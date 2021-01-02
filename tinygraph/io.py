@@ -97,19 +97,6 @@ def from_nx(ng, adj_type=np.int32,
                              f"failed. Self-connected edge found for vertex "
                              f"{e_names[ei][0]}.")
             continue
-
-        # Fetch properties
-        for ep in ep_types.keys():
-            if ep in e_prop.keys():
-                # TODO: Update once the edge proxy is implemented
-                eprop = e_prop[ep]
-            elif not raise_error_on_missing_prop:
-                eprop = tg.default_zero(ep_types[ep])
-            else:
-                raise KeyError(f"Property '{ep}' absent from edge {e_names[ei]}")
-            g.e[ep][v1_num, v2_num] = eprop
-            g.e[ep][v2_num, v1_num] = eprop
-
         # Build adjacency matrix with possibly weighted entries
         if weight_prop is None:
             g[v1_num, v2_num] = tg.default_one(adj_type)
@@ -123,6 +110,19 @@ def from_nx(ng, adj_type=np.int32,
             else:
                 # If no weight is given, set to one for now
                 g[v1_num, v2_num] = tg.default_one(adj_type)
+        # Fetch properties
+        for ep in ep_types.keys():
+            if ep in e_prop.keys():
+                # TODO: Update once the edge proxy is implemented
+                eprop = e_prop[ep]
+            elif not raise_error_on_missing_prop:
+                eprop = tg.default_zero(ep_types[ep])
+            else:
+                raise KeyError(f"Property '{ep}' absent from edge {e_names[ei]}")
+            g.e[ep][v1_num, v2_num] = eprop
+            g.e[ep][v2_num, v1_num] = eprop
+
+        
     return g
 
 

@@ -28,7 +28,7 @@ def test_nx_suite(test_name):
 
         # Extract data types (may be suboptimal but works..)
         vp_types = dict(map(lambda k: (k, g.v[k].dtype), g.v))
-        ep_types = dict(map(lambda k: (k, g.e[k].dtype), g.e))
+        ep_types = dict(map(lambda k: (k, g.e[k].dtype), g.e.keys()))
         g2 = tg.io.from_nx(ng,
                            adj_type=g.adjacency.dtype,
                            weight_prop='weight', name_prop=name_arg,
