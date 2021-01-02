@@ -9,6 +9,9 @@ def default_zero(dtype):
         return False
     elif np.issubdtype(dtype, np.number):
         return 0
+    elif np.issubdtype(dtype, np.str):
+        # Empty string!
+        return ""
     else:
         raise ValueError(f"unknown dtype {dtype}")
 
@@ -22,7 +25,7 @@ def default_one(dtype):
     elif np.issubdtype(dtype, np.number):
         return 1
     else:
-        
+        # Fails on strings
         raise ValueError(f"unknown dtype {dtype}")
 
 
