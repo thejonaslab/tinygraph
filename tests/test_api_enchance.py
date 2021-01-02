@@ -72,12 +72,14 @@ def test_remove_edge():
     g.e['color'][4,0] = 1
     g[0,4] = 0
     g[1,0] = 0
-    with pytest.raises(Exception, match='No such edge.'):
+    with pytest.raises(IndexError, match='No such edge'):
+        g.e['color'][1,4] = 6
+    with pytest.raises(IndexError, match='No such edge.'):
         g.e['color'][0,1]
     assert g.e['color'][1,2] == 4
     assert g.e['color'][2,3] == 5
     assert g.e['color'][3,4] == 6
-    with pytest.raises(Exception, match='No such edge.'):
+    with pytest.raises(IndexError, match='No such edge.'):
         g.e['color'][4,0]
 
 def test_permute():

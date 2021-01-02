@@ -70,7 +70,7 @@ class EdgeProxy:
         else:
             e1, e2 = key
             if self.__g[e1, e2] == default_zero(self.dtype):
-                raise Exception("No such edge.")
+                raise IndexError("No such edge.")
             else:
                 self.__g.e_p[self.__prop][e1, e2] = value
                 self.__g.e_p[self.__prop][e2, e1] = value
@@ -92,7 +92,7 @@ class EdgeProxy:
         else:
             e1, e2 = key
             if self.__g[e1, e2] == default_zero(self.dtype):
-                raise Exception("No such edge.")
+                raise IndexError("No such edge.")
             else:
                 return self.__g.e_p[self.__prop][e1, e2]        
 
