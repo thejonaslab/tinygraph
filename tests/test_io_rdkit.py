@@ -42,7 +42,7 @@ def test_smiles_io(smiles_set):
 
 def test_complex_ring():
     """
-    Test kekulization
+    Test a more complex ring that has explicit and implicit hydrogens
     """
     s = 'CCc(c1)ccc2[n+]1ccc3c2[nH]c4c3cccc4'
     
@@ -66,3 +66,19 @@ def test_complex_ring():
     assert new_smiles == canonical_smiles
 
     
+def test_raise_exception():
+    """
+    Test if adding an unknown bond order edge results in an exception
+    upon conversion
+    
+    """
+    s = "CCCC"
+    mol = Chem.MolFromSmiles(s)
+    Chem.SanitizeMol(mol)
+            
+    g = io.rdkit.from_rdkit_mol(mol)
+    g[1, 2] = 4.18
+
+    with pytest.raises(ValueError):
+        io.rdkit.to_rdkit_mol(g)
+        
