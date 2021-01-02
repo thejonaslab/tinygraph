@@ -26,7 +26,7 @@ def graph_equality(g1, g2):
     
 
     for k in g1.e.keys():
-        if not EdgeProxy.array_equal(g1.e[k], g2.e[k]):
+        if not np.array_equal(g1.e_p[k], g2.e_p[k]):
             return False
 
     return True
