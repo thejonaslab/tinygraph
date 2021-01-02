@@ -1,6 +1,6 @@
 import tinygraph as tg
 import tinygraph.algorithms as algs
-from tinygraph.io import tg_to_nx
+from tinygraph.io import to_nx
 import pytest
 import graph_test_suite
 import networkx as nx
@@ -54,7 +54,7 @@ def test_random_cc(test_name):
 
         tg_cc = algs.get_connected_components(g)
 
-        netx = tg_to_nx(g, weight_prop = "weight")
+        netx = to_nx(g, weight_prop = "weight")
         nx_cc = nx.connected_components(netx)
         
         for cc in nx_cc:
