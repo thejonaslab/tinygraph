@@ -58,7 +58,6 @@ def test_complex_ring():
 
     new_mol = io.rdkit.to_rdkit_mol(g, charge_prop='charge',
                                     chiral_prop='chiral',
-                                    implicit_h_prop = 'implicit_h', 
                                     explicit_h_prop = 'explicit_h', sanitize=True)
 
     assert new_mol.GetNumAtoms() == mol.GetNumAtoms()
