@@ -183,7 +183,7 @@ def test_default_values():
 def neighbors_graph():
     """Basic graph for reuse among tests"""
     g = tg.TinyGraph(4,
-                     vp_types={'name': np.chararray, 'pet': np.chararray},
+                     vp_types={'name': np.dtype("<U10"), 'pet': np.dtype("<U10")},
                      ep_types={'neighbors': np.bool, 'friends': np.bool})
     g.v['name'][:] = ['Hank', 'Frank', 'Tank', 'Yank']
     g.v['pet'][:] = ['Socks', 'Spot', 'Coffee', 'Cat']

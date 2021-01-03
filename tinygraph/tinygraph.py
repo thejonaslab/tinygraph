@@ -9,7 +9,7 @@ def default_zero(dtype):
         return False
     elif np.issubdtype(dtype, np.number):
         return 0
-    elif np.issubdtype(dtype, np.str):
+    elif np.issubdtype(dtype, np.str_):
         # Empty string!
         return ""
     else:
@@ -360,23 +360,23 @@ class TinyGraph:
             None
 
         Outputs:
-            newGraph (TinyGraph): Deep copy of TinyGraph instance.
+            new_graph (TinyGraph): Deep copy of TinyGraph instance.
         """
         v_p = {k : v.dtype for k, v in self.v.items()}
         e_p = {k : e.dtype for k, e in self.e_p.items()}
 
-        newGraph = TinyGraph(self.__node_N, self.adjacency.dtype,
-                             v_p, e_p)
-        newGraph.adjacency[:] = self.adjacency
+        new_graph = TinyGraph(self.__node_N, self.adjacency.dtype, v_p, e_p)
+        new_graph.adjacency[:] = self.adjacency
 
+        # Set node properties
         for key, arr in self.v.items():
-            newGraph.v[key][:] = arr[i]
-            
+            new_graph.v[key][:] = self.v[key]
+
         # Set edge properties
-        for key, arr in self.v.items():
-            newGraph.e_p[key][:] = arr
+        for key, arr in self.e.items():
+            new_graph.e_p[key][:] = self.e_p[key]
 
-        return newGraph
+        return new_graph
 
     def get_vert_props(self, n, vert_props = None):
         """
