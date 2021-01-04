@@ -29,6 +29,9 @@ def graph_equality(g1, g2):
         if not np.array_equal(g1.e_p[k], g2.e_p[k]):
             return False
 
+    if not g1.props == g2.props:
+        return False
+
     return True
     
 def permute(g, perm):

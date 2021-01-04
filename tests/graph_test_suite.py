@@ -184,3 +184,25 @@ def create_suite_edge_prop(seed=0):
 
     return suite
             
+
+def create_suite_global_prop(seed=0):
+    
+    rng = np.random.RandomState(seed)
+    suite = create_suite(rng=rng)
+
+    out_suite = {}
+
+    for k, v in suite.items():
+        for g in v:
+            possible_props = {'foo' : 1,
+                              'bar' : 1.0,
+                              'baz' : [1, 2, 3],
+                              'quxx' : {'foo' : 100},
+                              'quxxx' : None}
+            number = np.random.randint(1, len(possible_props)+1)
+            for i in range(number):
+                k = rng.choice(list(possible_props.keys()))
+                g.props[k] = possible_props[k] 
+            
+        out_suite[f'global_prop_{k}'] = v
+    return suite

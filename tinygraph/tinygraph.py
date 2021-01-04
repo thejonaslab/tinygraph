@@ -184,6 +184,8 @@ class TinyGraph:
         for k, dt in ep_types.items():
             self.add_edge_prop(k, dt)
 
+        self.props = {}
+        
     @property
     def node_N(self):
         return self.__node_N
@@ -433,7 +435,7 @@ class TinyGraph:
         for i, props in self.vertices(vert_props = self.v.keys()):
             rep += str(i) + ": " + str(props) + "\n"
         rep += "\nEdges:\n"
-        for i,j,w,props in self.edges(weight = True,edge_props = self.e.keys()):
+        for i,j,w,props in self.edges(weight = True,edge_props = self.e.keys()): 
             rep += "(" + str(i) + ", " + str(j) + "): Weight - " + str(w) +\
                 ", Props - " + str(props) + "\n"
         return rep[:-1] # strip last newline 
