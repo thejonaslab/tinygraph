@@ -40,8 +40,9 @@ commands:
             . ~/.bashrc
             . ~/miniconda/etc/profile.d/conda.sh
             printenv
-            conda create -q -n test-environment numba python cython decorator pytest networkx
+            conda create -q -n test-environment numba python=3.7 cython decorator pytest networkx
             conda activate test-environment
+            conda install rdkit -c rdkit
 
   run_tests:
     description: run pytests
