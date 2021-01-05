@@ -2,6 +2,17 @@
 
 import numpy as np
 import tinygraph as tg
+import graph_test_suite
+import io
+import pytest
+
+
+basic_suite = graph_test_suite.create_suite()
+vp_suite = graph_test_suite.create_suite_vert_prop()
+ep_suite = graph_test_suite.create_suite_edge_prop()
+prop_suite = graph_test_suite.create_suite_global_prop()
+
+suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
 
 
 def test_create_graphs_types():
@@ -175,3 +186,13 @@ def test_graph_props():
     
     assert not tg.util.graph_equality(g1, g2)
     
+
+@pytest.mark.parametrize("test_name", [k for k in suite.keys()])
+def test_copy_suite(test_name):
+    """
+    Test graph copy against suite
+    """
+    for g in suite[test_name]:
+        g1 = g.copy()
+        assert tg.util.graph_equality(g1, g)
+        

@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 
 def default_zero(dtype):
     """
@@ -378,6 +379,9 @@ class TinyGraph:
         for key, arr in self.e.items():
             new_graph.e_p[key][:] = self.e_p[key]
 
+        for k, v in self.props.items():
+            new_graph.props[k] = deepcopy(v)
+            
         return new_graph
 
     def get_vert_props(self, n, vert_props = None):
