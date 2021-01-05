@@ -59,10 +59,16 @@ def test_basic_functionality():
     t = tg.TinyGraph(2, vp_types={'color': np.int32})
     assert(t.node_N == 2)
 
+    t[1,0] = 1
+    assert(t.edge_N == 1)
+
     t.add_node(props={'color': 3})
+    t[1,2] = 1
     assert(t.node_N == 3)
+    assert(t.edge_N == 2)
 
     t.remove_node(0)
+    assert(t.edge_N == 1)
     assert(t.node_N == 2)
     assert(t.v['color'][1] == 3)
     assert(t.v['color'][0] == 0)

@@ -197,7 +197,7 @@ class TinyGraph:
             raise Exception("Adjacency matrix has become asymmetric - number of\
                 edges ambiguous")
         else:
-            return e/2
+            return e//2
 
     def add_vert_prop(self, name, dtype):
         """
