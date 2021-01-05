@@ -190,6 +190,14 @@ class TinyGraph:
     @property
     def node_N(self):
         return self.__node_N
+    @property
+    def edge_N(self):
+        e = np.count_nonzero(self.adjacency)
+        if e%2 != 0:
+            raise Exception("Adjacency matrix has become asymmetric - number of\
+                edges ambiguous")
+        else:
+            return e/2
 
     def add_vert_prop(self, name, dtype):
         """
