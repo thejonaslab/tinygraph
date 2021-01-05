@@ -5,8 +5,28 @@ import tinygraph.fastutils
 from queue import Queue
 
 from tinygraph.fastutils import get_connected_components
-from tinygraph.fastutils import get_shortest_paths
-            
+# from tinygraph.fastutils import get_shortest_paths
+
+@profile
+def get_shortest_paths(tg):
+    """
+    Get the length of the shortest path from each node to each other node.
+
+    Inputs:
+        tg (TinyGraph): The graph to find the shortest paths in.
+
+    Outputs:
+        lengths ([[int]]): A list of the lengths to each node. The lists are
+            ordered by node number, so lengths[0] is a list of the lengths from
+            node 0 to the other nodes. (e.g. lengths[0][3] = length of shortest 
+            path from 0 to 3; lengths[2][2] = 0 is length of shortest path from
+            node 2 to node 2).
+    """
+    lengths = []
+    for i in range(tg.node_N):
+        lengths.append([0,0])
+    return lengths
+
 def get_min_cycles(tg):
     """
     Determines if a node in a graph is part of a cycle, and if so, returns the 

@@ -1,5 +1,5 @@
 """
-Simple stand-alone test to benchmark cc
+Simple stand-alone test to benchmark shortest paths
 """
 import sys; sys.path.append("../tests")
 import graph_test_suite
@@ -19,20 +19,21 @@ res = []
 for i in range(100):
     g = graph_test_suite.gen_random(NODE_N, np.int32, [1], 0.02)    
     t1 = time.time()
-    tg_cc = algs.get_connected_components(g)
+    tg_sp = algs.get_shortest_paths(g)
     t2 = time.time()
-    
+
     netx = to_nx(g, weight_prop = "weight")
 
-    nx_cc = list(nx.connected_components(netx))
-    assert len(list(nx_cc)) == len(tg_cc)
-    for cc in nx_cc:
-        assert cc in tg_cc
+    nx_sp = list(nx.all_pairs_shortest_path_length(netx))
+    for i in range(NODE_N):
+        for j in range(NODE_N):
+            pass
+            # assert tg_sp[i][j] == nx_sp[i][j]
     res.append({"runtime_ms" : (t2-t1)*1000,
-                "components" : len(tg_cc),
+                # "components" : len(tg_cc),
                 "node_N" : g.node_N})
 
 df = pd.DataFrame(res)
 print("average number of nodes:", df.node_N.mean())
-print("average number of components:",  df.components.mean())
+# print("average number of components:",  df.components.mean())
 print("average runtime:", df.runtime_ms.mean(), "ms")
