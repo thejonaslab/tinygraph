@@ -27,13 +27,11 @@ for i in range(100):
     nx_sp = list(nx.all_pairs_shortest_path_length(netx))
     for i in range(NODE_N):
         for j in range(NODE_N):
-            pass
-            # assert tg_sp[i][j] == nx_sp[i][j]
+            # pass
+            assert tg_sp[i][j] == nx_sp[i][j]
     res.append({"runtime_ms" : (t2-t1)*1000,
-                # "components" : len(tg_cc),
                 "node_N" : g.node_N})
 
 df = pd.DataFrame(res)
 print("average number of nodes:", df.node_N.mean())
-# print("average number of components:",  df.components.mean())
 print("average runtime:", df.runtime_ms.mean(), "ms")

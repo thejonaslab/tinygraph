@@ -10,7 +10,8 @@ from tinygraph.fastutils import get_connected_components
 @profile
 def get_shortest_paths(tg):
     """
-    Get the length of the shortest path from each node to each other node.
+    Get the length of the shortest path from each node to each other node. Uses
+    Floyd-Warshall to calculate the lengths of the shortest paths.
 
     Inputs:
         tg (TinyGraph): The graph to find the shortest paths in.
@@ -20,11 +21,20 @@ def get_shortest_paths(tg):
             ordered by node number, so lengths[0] is a list of the lengths from
             node 0 to the other nodes. (e.g. lengths[0][3] = length of shortest 
             path from 0 to 3; lengths[2][2] = 0 is length of shortest path from
-            node 2 to node 2).
+            node 2 to node 2). If no path exists between the nodes, the result
+            is None.
     """
-    lengths = []
-    for i in range(tg.node_N):
-        lengths.append([0,0])
+    lengths = [[0 if i == j else None for i in range(tg.node_N)] for j in range(tg.node_N)]
+    for e1, e2, w in tg.edges(weight=True):
+        lengths[e1][e2] = w 
+        lengths[e2][e1] = w
+    for k in range(tg.node_N):
+        for j in range(tg.node_N):
+            for i in range(tg.node_N):
+                if not lengths[i][k] is None and not lengths[k][j] is None:
+                    newL = lengths[i][k] + lengths[k][j]
+                    if lengths[i][j] is None or lengths[i][j] > newL:
+                        lengths[i][j] = newL
     return lengths
 
 def get_min_cycles(tg):
