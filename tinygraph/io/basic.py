@@ -3,6 +3,7 @@
 import numpy as np
 import networkx
 import tinygraph as tg
+import json
 
 # For slightly cleaner type inference
 import numbers
@@ -122,7 +123,10 @@ def from_nx(ng, adj_type=np.int32,
             g.e[ep][v1_num, v2_num] = eprop
             g.e[ep][v2_num, v1_num] = eprop
 
-        
+    # global properties
+    for k, v in ng.graph.items():
+        g.props[k] = v
+    
     return g
 
 
@@ -214,6 +218,9 @@ def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
                 if weight_prop is not None:
                     ng.edges[iname, jname][weight_prop] = edge_val
 
+    for k, v in g.props.items():
+        ng.graph[k] = v
+        
     return ng
 
 
@@ -221,7 +228,8 @@ def to_binary(g, fileobj):
     """
     Convert tiny graph to fast binary representation for storage.
     Note this is just a compressed npz from numpy with some
-    help around attribute names
+    help around attribute names. Note that per-graph properties
+    are serialized as a json string. 
     Inputs:
          tg: TinyGraph
          fileobj : Python file-like object
@@ -235,6 +243,11 @@ def to_binary(g, fileobj):
     for k, v in g.e.items():
         fields[f'ep_{k}'] = v
 
+
+    if len(g.props) > 0:
+        props = json.dumps(g.props)        
+        fields['props'] = np.array(props)
+        
     np.savez_compressed(fileobj, **fields)
 
 def from_binary(fileobj):
@@ -251,6 +264,7 @@ def from_binary(fileobj):
     adj = d['adjacency']
     vp = {}
     ep = {}
+    props = {}
     for k in d.keys():
         if k.startswith("vp_"):
             vp[k[3:]] = d[k]
@@ -258,6 +272,8 @@ def from_binary(fileobj):
             ep[k[3:]] = d[k]
         elif k == 'adjacency':
             pass
+        elif k == 'props':
+            props = json.loads(d[k].tobytes())
         else:
             raise ValueErorr(f"unknown field {k} in npz file")
     g = tg.TinyGraph(adj.shape[0], adj.dtype,
@@ -271,5 +287,7 @@ def from_binary(fileobj):
         g.v[k][:] = v
     for k, v in ep.items():
         g.e[k][:] = v
+
+    g.props = props
 
     return g

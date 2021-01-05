@@ -156,3 +156,22 @@ def test_copy():
     assert np.all(g.e_p['edgename'] == [["", "main", "intercept 1"],
                                         ["main", "", "intercept 2"],
                                         ["intercept 1", "intercept 2", ""]])
+
+def test_graph_props():
+    """
+    Simple tests of per-graph properties
+
+    """
+    
+    g1 = tg.TinyGraph(10)
+    g1.props['foo'] = 'bar'
+
+    g2 = tg.TinyGraph(10)
+    g2.props['foo'] = 'bar'
+
+    assert tg.util.graph_equality(g1, g2)
+
+    g2.props['baz'] = 7
+    
+    assert not tg.util.graph_equality(g1, g2)
+    
