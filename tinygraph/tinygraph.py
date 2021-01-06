@@ -469,7 +469,7 @@ class TinyGraph:
         #         neighbors.append(i)
         return neighbors
 
-    def edges(self, weight = False, edge_props = []):
+    def edges(self, weight = False, edge_props = None):
         """
         Get a list of the edges by endpoint nodes, optionally with their weight 
         and some properties.
@@ -496,7 +496,7 @@ class TinyGraph:
                 e = (i, j)
                 if weight:
                     e += (self[i,j],)
-                if edge_props:
+                if not edge_props is None:
                     d = self.get_edge_props(i,j,edge_props)
                     e += (d,)
                 edges.append(e)

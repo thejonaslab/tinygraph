@@ -21,6 +21,7 @@ def test_vertices():
     g.v['elem'][4] = True
     color = [3,4,5,6,1]
     elem = [True, False, True, False, True]
+    assert len(g.vertices(vert_props={})[0]) == 2
     for i, d in g.vertices(vert_props = ['color', 'elem']):
         assert d['color'] == color[i]
         assert d['elem'] == elem[i]
@@ -48,6 +49,7 @@ def test_edges():
     g.e['elem'][3,4] = True
     weights = {(0,4):10,(0,1):20,(1,2):30,(2,3):40,(3,4):50}
     elem = {(0,4):True,(0,1):False,(1,2):True,(2,3):False,(3,4):True}
+    assert len(g.edges(edge_props={})[0]) == 3
     for i, j, w in g.edges(weight = True):
         assert w == weights[(i,j)]
     for i, j, d in g.edges(edge_props = ['elem']):
