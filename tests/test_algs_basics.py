@@ -9,34 +9,34 @@ def test_cc_empty():
     """
     Empty graph has no connected components.
     """
-    g1 = tg.TinyGraph(0)
+    g = tg.TinyGraph(0)
 
-    assert algs.get_connected_components(g1) == []
+    assert algs.get_connected_components(g) == []
 
 def test_cc_one_comp():
     """
     Test graph with one connected component.
     """
-    g2 = tg.TinyGraph(5)
-    g2[0,1] = 1
-    g2[0,2] = 1
-    g2[2,3] = 1
-    g2[3,4] = 1
+    g = tg.TinyGraph(5)
+    g[0,1] = 1
+    g[0,2] = 1
+    g[2,3] = 1
+    g[3,4] = 1
 
-    assert algs.get_connected_components(g2) == [set(range(5)),]
+    assert algs.get_connected_components(g) == [set(range(5)),]
 
 def test_cc_multi_comp():
     """
     Test graph with mulitple connected components.
     """
-    g3 = tg.TinyGraph(6)
-    g3[0,1] = 1
-    g3[0,2] = 1
-    g3[1,2] = 1
-    g3[3,4] = 1
-    g3[4,5] = 1
+    g = tg.TinyGraph(6)
+    g[0,1] = 1
+    g[0,2] = 1
+    g[1,2] = 1
+    g[3,4] = 1
+    g[4,5] = 1
 
-    assert algs.get_connected_components(g3) == [set(range(3)),set(range(3,6))]
+    assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
 
 basic_suite = graph_test_suite.create_suite()
 vp_suite = graph_test_suite.create_suite_vert_prop()
@@ -46,57 +46,66 @@ suite = {**basic_suite, **vp_suite, **ep_suite}
 
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
-def test_random_cc(test_name):
+def test_random(test_name):
     """
-    Test randomly generated graphs against networkx cc.
+    Test randomly generated graphs against networkx algorithms.
     """
     for g in suite[test_name]:
 
         tg_cc = algs.get_connected_components(g)
+        tg_sp = algs.get_shortest_paths(g,False)
 
         netx = to_nx(g, weight_prop = "weight")
         nx_cc = nx.connected_components(netx)
+        nx_sp = dict(nx.all_pairs_shortest_path_length(netx))
         
         for cc in nx_cc:
             assert cc in tg_cc
+
+        for i in range(g.node_N):
+            for j in range(g.node_N):
+                if not j in nx_sp[i]:
+                    assert tg_sp[i][j] is None
+                else:
+                    assert tg_sp[i][j] == nx_sp[i][j]
 
 def test_cycles_empty():
     """
     An empty graph has no nodes to be in cycles.
     """
-    g4 = tg.TinyGraph(0)
+    g = tg.TinyGraph(0)
 
-    assert algs.get_min_cycles(g4) == [] 
+    assert algs.get_min_cycles(g) == [] 
 
 def test_cycles_medium():
     """
     Test some medium sized graphs with various sized cycles.
     """
-    g5 = tg.TinyGraph(6)
-    g5[0,1] = 1
-    g5[0,2] = 1
-    g5[1,2] = 1
-    g5[0,3] = 1
-    g5[0,5] = 1
-    g5[3,4] = 1
-    g5[4,5] = 1
+    g1 = tg.TinyGraph(6)
+    g1[0,1] = 1
+    g1[0,2] = 1
+    g1[1,2] = 1
+    g1[0,3] = 1
+    g1[0,5] = 1
+    g1[3,4] = 1
+    g1[4,5] = 1
 
-    assert algs.get_min_cycles(g5) == [{0, 1, 2}, {0, 1, 2}, {0, 1, 2},\
+    assert algs.get_min_cycles(g1) == [{0, 1, 2}, {0, 1, 2}, {0, 1, 2},\
                                         {0, 3, 4, 5},{0, 3, 4, 5},{0, 3, 4, 5}]
 
-    g6 = tg.TinyGraph(9)
-    g6[0,8] = 1
-    g6[7,8] = 1
-    g6[6,8] = 1
-    g6[3,7] = 1
-    g6[3,6] = 1
-    g6[2,3] = 1
-    g6[5,6] = 1
-    g6[1,2] = 1
-    g6[1,4] = 1
-    g6[4,5] = 1
+    g2 = tg.TinyGraph(9)
+    g2[0,8] = 1
+    g2[7,8] = 1
+    g2[6,8] = 1
+    g2[3,7] = 1
+    g2[3,6] = 1
+    g2[2,3] = 1
+    g2[5,6] = 1
+    g2[1,2] = 1
+    g2[1,4] = 1
+    g2[4,5] = 1
 
-    assert algs.get_min_cycles(g6) == [set(), \
+    assert algs.get_min_cycles(g2) == [set(), \
                                         {1, 2, 3, 4, 5, 6}, \
                                         {1, 2, 3, 4, 5, 6}, \
                                         {3, 7, 8, 6}, \
@@ -105,3 +114,66 @@ def test_cycles_medium():
                                         {3, 7, 8, 6}, \
                                         {3, 7, 8, 6}, \
                                         {3, 7, 8, 6} ]
+
+def test_paths_empty():
+    """
+    Test shortest paths on an empty graph.
+    """
+    g = tg.TinyGraph(0)
+
+    assert algs.get_shortest_paths(g,False) == []
+
+def test_paths_fully_connected():
+    """
+    Test shortest paths on a fully connected graph.
+    """
+    g = tg.TinyGraph(5)
+    g[0,1] = 1
+    g[1,2] = 1
+    g[2,3] = 1
+    g[3,4] = 1
+    g[4,0] = 1
+
+    assert algs.get_shortest_paths(g,True) == [[0,1,2,2,1],\
+                                                [1,0,1,2,2],\
+                                                [2,1,0,1,2],\
+                                                [2,2,1,0,1],\
+                                                [1,2,2,1,0]]
+
+def test_paths_disjointed():
+    """
+    Test shortest paths on a graph with at least two components.
+    """
+    g = tg.TinyGraph(8)
+    g[0,1] = 1
+    g[0,2] = 1
+    g[1,2] = 3
+    g[2,3] = 1
+    g[3,4] = 1
+    g[5,6] = 3
+    g[6,7] = 2
+    g[7,5] = 1 
+
+    assert algs.get_shortest_paths(g,True)==[[0,1,1,2,3,None,None,None],\
+                                            [1,0,2,3,4,None,None,None],\
+                                            [1,2,0,1,2,None,None,None],\
+                                            [2,3,1,0,1,None,None,None],\
+                                            [3,4,2,1,0,None,None,None],\
+                                            [None,None,None,None,None,0,3,1],\
+                                            [None,None,None,None,None,3,0,2],\
+                                            [None,None,None,None,None,1,2,0]]
+
+def test_negative_cycles():
+    """
+    Test shortest path on a graph with a negative cycle (expect raise error).
+    """
+    g = tg.TinyGraph(3)
+    g[0,1] = 1
+    g[1,2] = -5
+    g[2,0] = 1
+
+    with pytest.raises(Exception, match='Graph has a negative cycle.'):
+        algs.get_shortest_paths(g,True)
+    assert algs.get_shortest_paths(g,False) == [[0,1,1],
+                                                [1,0,1],
+                                                [1,1,0]]

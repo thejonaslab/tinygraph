@@ -8,34 +8,47 @@ from tinygraph.fastutils import get_connected_components
 # from tinygraph.fastutils import get_shortest_paths
 
 @profile
-def get_shortest_paths(tg):
+def get_shortest_paths(tg, weighted):
     """
-    Get the length of the shortest path from each node to each other node. Uses
-    Floyd-Warshall to calculate the lengths of the shortest paths.
+    Get the distance from each node to each other node on the shortest path. 
+    Uses Floyd-Warshall to calculate the distances of the shortest paths.
 
     Inputs:
         tg (TinyGraph): The graph to find the shortest paths in.
 
     Outputs:
-        lengths ([[int]]): A list of the lengths to each node. The lists are
-            ordered by node number, so lengths[0] is a list of the lengths from
-            node 0 to the other nodes. (e.g. lengths[0][3] = length of shortest 
-            path from 0 to 3; lengths[2][2] = 0 is length of shortest path from
-            node 2 to node 2). If no path exists between the nodes, the result
-            is None.
+        distances ([[int]]): A list of the distance to each node. The lists are
+            ordered by node number, so distances[0] is a list of the distances 
+            from node 0 to the other nodes (e.g. distances[0][3] = distance from
+            node 0 to node 3 shortest path from 0 to 3; distances[2][2] = 0 is 
+            distance from node 2 to itself). If no path exists between the 
+            nodes, the result is None.
+        weighted (bool): Whether to consider the weights of the edges, or to 
+            consider only the lengths of the path. If weighted is true, the 
+            distance of a path is calculated by the sum of the weights on the 
+            path. If false, the distance is calculated by the number of nodes on
+            the path.
     """
-    lengths = [[0 if i == j else None for i in range(tg.node_N)] for j in range(tg.node_N)]
+    distances = [[0 if i == j else None for i in range(tg.node_N)]\
+                                        for j in range(tg.node_N)]
     for e1, e2, w in tg.edges(weight=True):
-        lengths[e1][e2] = w 
-        lengths[e2][e1] = w
+        if weighted:
+            distances[e1][e2] = w 
+            distances[e2][e1] = w
+        else:
+            distances[e1][e2] = 1 
+            distances[e2][e1] = 1
     for k in range(tg.node_N):
         for j in range(tg.node_N):
             for i in range(tg.node_N):
-                if not lengths[i][k] is None and not lengths[k][j] is None:
-                    newL = lengths[i][k] + lengths[k][j]
-                    if lengths[i][j] is None or lengths[i][j] > newL:
-                        lengths[i][j] = newL
-    return lengths
+                if not distances[i][k] is None and not distances[k][j] is None:
+                    newL = distances[i][k] + distances[k][j]
+                    if distances[i][j] is None or distances[i][j] > newL:
+                        distances[i][j] = newL
+    for i in range(tg.node_N):
+        if distances[i][i] < 0:
+            raise Exception("Graph has a negative cycle.")
+    return distances
 
 def get_min_cycles(tg):
     """
