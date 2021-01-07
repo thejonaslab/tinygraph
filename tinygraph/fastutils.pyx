@@ -146,6 +146,27 @@ cpdef get_connected_components(tg):
 
     return out
 
+cdef np.float64_t[:,:] floyd_warshall(np.float64_t[:,:] distances, int n):
+    for k in range(n):
+        for j in range(n):
+            for i in range(n):
+                #if not np.isnan(distances[i][k]) and not np.isnan(distances[k][j]):
+                #    newL = distances[i][k] + distances[k][j]
+                #    if np.isnan(distances[i][j]) or distances[i][j] > newL:
+                #        distances[i][j] = newL
+                if not distances[i][k] == 0 and not distances[k][j] == 0:
+                    newL = distances[i][k] + distances[k][j]
+                    if not i == j and (distances[i][j] > newL or distances[i][j] == 0):
+                        distances[i][j] = newL
+    for j in range(n):
+        for i in range(n):
+            if not i == j and distances[i][j] == 0:
+                distances[i][j] = np.nan
+    return distances
+
+cpdef _floyd_warshall(d, n):
+    return floyd_warshall(d, n)
+
 cpdef get_shortest_paths(tg, weighted):
     """
     Get the distance from each node to each other node on the shortest path. 
@@ -167,22 +188,42 @@ cpdef get_shortest_paths(tg, weighted):
             path. If false, the distance is calculated by the number of nodes on
             the path.
     """
-    distances = [[0 if i == j else None for i in range(tg.node_N)]\
-                                        for j in range(tg.node_N)]
-    for e1, e2, w in tg.edges(weight=True):
-        if weighted:
-            distances[e1][e2] = w 
-            distances[e2][e1] = w
-        else:
-            distances[e1][e2] = 1 
-            distances[e2][e1] = 1
-    for k in range(tg.node_N):
-        for j in range(tg.node_N):
-            for i in range(tg.node_N):
-                if not distances[i][k] is None and not distances[k][j] is None:
-                    newL = distances[i][k] + distances[k][j]
-                    if distances[i][j] is None or distances[i][j] > newL:
-                        distances[i][j] = newL
+    #distances = [[0 if i == j else None for i in range(tg.node_N)]\
+    #                                    for j in range(tg.node_N)]
+    #for e1, e2, w in tg.edges(weight=True):
+    #    if weighted:
+    #        distances[e1][e2] = w 
+    #        distances[e2][e1] = w
+    #    else:
+    #        distances[e1][e2] = 1 
+    #        distances[e2][e1] = 1
+    #for k in range(tg.node_N):
+    #   for j in range(tg.node_N):
+    #        for i in range(tg.node_N):
+    #            if not distances[i][k] is None and not distances[k][j] is None:
+    #                newL = distances[i][k] + distances[k][j]
+    #                if distances[i][j] is None or distances[i][j] > newL:
+    #                    distances[i][j] = newL
+    #if not weighted or not np.issubdtype(tg.adjacency.dtype, np.number):
+    #    distances = np.array([[0 if i == j else np.nan if v == 0 else 1 
+    #                                for i,v in enumerate(row)] 
+    #                                for j,row in enumerate(tg.adjacency)],
+    #                                dtype=np.float64)
+    #else:
+    #    distances = np.array([[0 if i == j else np.nan if v == 0 else v 
+    #                                for i,v in enumerate(row)] 
+    #                                for j,row in enumerate(tg.adjacency)],
+    #                                dtype=np.float64)
+    if not weighted or not np.issubdtype(tg.adjacency.dtype, np.number):
+        distances=np.array([[0 if v==tinygraph.default_zero(tg.adjacency.dtype) 
+                                else 1 for i,v in enumerate(row)] 
+                                for j,row in enumerate(tg.adjacency)],
+                                dtype=np.float64)
+    else:
+        distances = np.array([[0 if v == 0 else v for i,v in enumerate(row)] 
+                                for j,row in enumerate(tg.adjacency)],
+                                dtype=np.float64)
+    distances = np.array(floyd_warshall(distances, tg.node_N))
     for i in range(tg.node_N):
         if distances[i][i] < 0:
             raise Exception("Graph has a negative cycle.")

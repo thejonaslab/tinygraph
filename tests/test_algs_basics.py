@@ -4,6 +4,7 @@ from tinygraph.io import to_nx
 import pytest
 import graph_test_suite
 import networkx as nx
+import numpy as np
 
 def test_cc_empty():
     """
@@ -65,7 +66,7 @@ def test_random(test_name):
         for i in range(g.node_N):
             for j in range(g.node_N):
                 if not j in nx_sp[i]:
-                    assert tg_sp[i][j] is None
+                    assert np.isnan(tg_sp[i][j])
                 else:
                     assert tg_sp[i][j] == nx_sp[i][j]
 

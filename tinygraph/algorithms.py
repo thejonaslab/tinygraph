@@ -4,8 +4,25 @@ import tinygraph
 import tinygraph.fastutils
 from queue import Queue
 
+import numpy as np
+
 from tinygraph.fastutils import get_connected_components
 from tinygraph.fastutils import get_shortest_paths
+
+# @profile
+# def get_shortest_test(tg, weighted):
+#     if not weighted or not np.issubdtype(tg.adjacency.dtype, np.number):
+#         distances = np.array([[0 if v == tinygraph.default_zero(tg.adjacency.dtype) 
+#                             else 1 for i,v in enumerate(row)] for j,row in 
+#                             enumerate(tg.adjacency)],dtype=np.float64)
+#     else:
+#         distances = np.array([[0 if v == 0 else v for i,v in enumerate(row)] for 
+#                             j,row in enumerate(tg.adjacency)],dtype=np.float64)
+#     distances = np.array(tinygraph.fastutils._floyd_warshall(distances, tg.node_N))
+#     for i in range(tg.node_N):
+#         if distances[i][i] < 0:
+#             raise Exception("Graph has a negative cycle.")
+#     return distances
 
 def get_min_cycles(tg):
     """

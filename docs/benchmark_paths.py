@@ -33,8 +33,11 @@ for i in range(100):
     for i in range(NODE_N):
         for j in range(NODE_N):
             if not j in nx_sp[i]:
-                assert tg_sp[i][j] is None
+                assert np.isnan(tg_sp[i][j])
+                # assert tg_sp[i][j] == 0
             else:
+                if not tg_sp[i][j] == nx_sp[i][j]:
+                    print(tg_sp, i, j)
                 assert tg_sp[i][j] == nx_sp[i][j]
     res.append({"runtime_uw_ms" : t_uw*1000,
                 "node_N" : g.node_N,
