@@ -4,9 +4,11 @@ import tinygraph
 import tinygraph.fastutils
 from queue import Queue
 
-from tinygraph.fastutils import get_connected_components
+import numpy as np
 
-            
+from tinygraph.fastutils import get_connected_components
+from tinygraph.fastutils import get_shortest_paths
+
 def get_min_cycles(tg):
     """
     Determines if a node in a graph is part of a cycle, and if so, returns the 

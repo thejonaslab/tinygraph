@@ -146,3 +146,54 @@ cpdef get_connected_components(tg):
 
     return out
 
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef np.float64_t[:,:] floyd_warshall(np.float64_t[:,:] distances, int n):
+    cdef double newL = 0
+    for k in range(n):
+        for j in range(n):
+            for i in range(n):
+                newL = distances[i][k] + distances[k][j]
+                if distances[i][j] > newL:
+                    distances[i][j] = newL
+    return distances
+
+cpdef _floyd_warshall(d, n):
+    return floyd_warshall(d, n)
+
+cpdef get_shortest_paths(tg, weighted):
+    """
+    Get the distance from each node to each other node on the shortest path. 
+    Uses Floyd-Warshall to calculate the distances of the shortest paths.
+
+    Inputs:
+        tg (TinyGraph): The graph to find the shortest paths in.
+
+    Outputs:
+        distances ([[int]]): A list of the distance to each node. The lists are
+            ordered by node number, so distances[0] is a list of the distances 
+            from node 0 to the other nodes (e.g. distances[0][3] = distance from
+            node 0 to node 3 shortest path from 0 to 3; distances[2][2] = 0 is 
+            distance from node 2 to itself). If no path exists between the 
+            nodes, the result is None.
+        weighted (bool): Whether to consider the weights of the edges, or to 
+            consider only the lengths of the path. If weighted is true, the 
+            distance of a path is calculated by the sum of the weights on the 
+            path. If false, the distance is calculated by the number of nodes on
+            the path.
+    """
+    if not weighted:
+        distances = np.ones_like(tg.adjacency, dtype = np.float64)
+        distances[tg.adjacency == tinygraph.default_zero(tg.adjacency.dtype)] = np.inf
+        distances[np.eye(tg.node_N) == 1] = 0
+    elif not np.issubdtype(tg.adjacency.dtype, np.number):
+        raise TypeError("Graph weights are not numbers.")
+    else:
+        distances = np.array(tg.adjacency,dtype=np.float64,copy=True)
+        distances[tg.adjacency == 0] = np.inf
+        distances[np.eye(tg.node_N) == 1] = 0
+    distances = np.array(floyd_warshall(distances, tg.node_N))
+    for i in range(tg.node_N):
+        if distances[i][i] < 0:
+            raise Exception("Graph has a negative cycle.")
+    return distances

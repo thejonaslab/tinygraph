@@ -8,7 +8,7 @@ import networkx as nx
 
 import tinygraph as tg
 import tinygraph.algorithms as algs
-from tinygraph.io import tg_to_nx
+from tinygraph.io import to_nx
 import numpy as np
 import pandas as pd
 
@@ -22,7 +22,7 @@ for i in range(100):
     tg_cc = algs.get_connected_components(g)
     t2 = time.time()
     
-    netx = tg_to_nx(g, weight_prop = "weight")
+    netx = to_nx(g, weight_prop = "weight")
 
     nx_cc = list(nx.connected_components(netx))
     assert len(list(nx_cc)) == len(tg_cc)

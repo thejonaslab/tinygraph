@@ -67,10 +67,10 @@ class EdgeProxy:
         Outputs:
             None
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         else:
             e1, e2 = key
             if self.__g[e1, e2] == default_zero(self.dtype):
@@ -89,10 +89,10 @@ class EdgeProxy:
         Outputs:
             value (dtype): Value of edge property.
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         else:
             e1, e2 = key
             if self.__g[e1, e2] == default_zero(self.dtype):
@@ -190,6 +190,14 @@ class TinyGraph:
     @property
     def node_N(self):
         return self.__node_N
+    @property
+    def edge_N(self):
+        e = np.count_nonzero(self.adjacency)
+        if e%2 != 0:
+            raise Exception("Adjacency matrix has become asymmetric - number of\
+                edges ambiguous")
+        else:
+            return e//2
 
     def add_vert_prop(self, name, dtype):
         """
@@ -327,11 +335,13 @@ class TinyGraph:
         Outputs:
             None - modifications are made in place.
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         e1, e2 = key
+        if e1 == e2:
+            raise IndexError("Self-loops are not allowed.")
         self.adjacency[e1, e2] = newValue
         self.adjacency[e2, e1] = newValue
         if newValue == default_zero(self.adjacency.dtype):
@@ -349,10 +359,10 @@ class TinyGraph:
         Outputs:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         return self.adjacency[key[0]][key[1]]
 
     def copy(self):
@@ -461,7 +471,7 @@ class TinyGraph:
         #         neighbors.append(i)
         return neighbors
 
-    def edges(self, weight = False, edge_props = []):
+    def edges(self, weight = False, edge_props = None):
         """
         Get a list of the edges by endpoint nodes, optionally with their weight 
         and some properties.
@@ -488,7 +498,7 @@ class TinyGraph:
                 e = (i, j)
                 if weight:
                     e += (self[i,j],)
-                if edge_props:
+                if not edge_props is None:
                     d = self.get_edge_props(i,j,edge_props)
                     e += (d,)
                 edges.append(e)
