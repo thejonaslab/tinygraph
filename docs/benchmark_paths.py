@@ -33,8 +33,7 @@ for i in range(100):
     for i in range(NODE_N):
         for j in range(NODE_N):
             if not j in nx_sp[i]:
-                assert np.isnan(tg_sp[i][j])
-                # assert tg_sp[i][j] == 0
+                assert tg_sp[i][j] == np.inf
             else:
                 if not tg_sp[i][j] == nx_sp[i][j]:
                     print(tg_sp, i, j)

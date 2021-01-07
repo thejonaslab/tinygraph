@@ -147,21 +147,13 @@ cpdef get_connected_components(tg):
     return out
 
 cdef np.float64_t[:,:] floyd_warshall(np.float64_t[:,:] distances, int n):
+    cdef double newL = 0
     for k in range(n):
         for j in range(n):
             for i in range(n):
-                #if not np.isnan(distances[i][k]) and not np.isnan(distances[k][j]):
-                #    newL = distances[i][k] + distances[k][j]
-                #    if np.isnan(distances[i][j]) or distances[i][j] > newL:
-                #        distances[i][j] = newL
-                if not distances[i][k] == 0 and not distances[k][j] == 0:
-                    newL = distances[i][k] + distances[k][j]
-                    if not i == j and (distances[i][j] > newL or distances[i][j] == 0):
-                        distances[i][j] = newL
-    for j in range(n):
-        for i in range(n):
-            if not i == j and distances[i][j] == 0:
-                distances[i][j] = np.nan
+                newL = distances[i][k] + distances[k][j]
+                if distances[i][j] > newL:
+                    distances[i][j] = newL
     return distances
 
 cpdef _floyd_warshall(d, n):
@@ -214,13 +206,18 @@ cpdef get_shortest_paths(tg, weighted):
     #                                for i,v in enumerate(row)] 
     #                                for j,row in enumerate(tg.adjacency)],
     #                                dtype=np.float64)
-    if not weighted or not np.issubdtype(tg.adjacency.dtype, np.number):
-        distances=np.array([[0 if v==tinygraph.default_zero(tg.adjacency.dtype) 
-                                else 1 for i,v in enumerate(row)] 
+    if not weighted:
+        distances=np.array([[0 if i == j else np.inf 
+                                if v==tinygraph.default_zero(tg.adjacency.dtype) 
+                                else 1 
+                                for i,v in enumerate(row)] 
                                 for j,row in enumerate(tg.adjacency)],
                                 dtype=np.float64)
+    elif not np.issubdtype(tg.adjacency.dtype, np.number):
+        raise TypeError("Graph weights are not numbers.")
     else:
-        distances = np.array([[0 if v == 0 else v for i,v in enumerate(row)] 
+        distances = np.array([[0 if i == j else np.inf if v == 0 else v 
+                                for i,v in enumerate(row)] 
                                 for j,row in enumerate(tg.adjacency)],
                                 dtype=np.float64)
     distances = np.array(floyd_warshall(distances, tg.node_N))

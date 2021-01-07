@@ -66,7 +66,7 @@ def test_random(test_name):
         for i in range(g.node_N):
             for j in range(g.node_N):
                 if not j in nx_sp[i]:
-                    assert np.isnan(tg_sp[i][j])
+                    assert tg_sp[i][j] == np.inf
                 else:
                     assert tg_sp[i][j] == nx_sp[i][j]
 
@@ -120,9 +120,13 @@ def test_paths_empty():
     """
     Test shortest paths on an empty graph.
     """
-    g = tg.TinyGraph(0)
+    g = tg.TinyGraph(0,adj_type=boolean)
 
-    assert algs.get_shortest_paths(g,False) == []
+    with pytest.raises(TypeError, match='Graph weights are not numbers.'):
+        algs.get_shortest_paths(g,True)
+
+    np.testing.assert_equal(algs.get_shortest_paths(g,False),
+                                np.array([[]],dtype=np.float64))
 
 def test_paths_fully_connected():
     """
@@ -135,11 +139,12 @@ def test_paths_fully_connected():
     g[3,4] = 1
     g[4,0] = 1
 
-    assert algs.get_shortest_paths(g,True) == [[0,1,2,2,1],\
+    np.testing.assert_equal(algs.get_shortest_paths(g,True),\
+                                        np.array([[0,1,2,2,1],\
                                                 [1,0,1,2,2],\
                                                 [2,1,0,1,2],\
                                                 [2,2,1,0,1],\
-                                                [1,2,2,1,0]]
+                                                [1,2,2,1,0]],dtype=np.float64))
 
 def test_paths_disjointed():
     """
@@ -155,14 +160,18 @@ def test_paths_disjointed():
     g[6,7] = 2
     g[7,5] = 1 
 
-    assert algs.get_shortest_paths(g,True)==[[0,1,1,2,3,None,None,None],\
-                                            [1,0,2,3,4,None,None,None],\
-                                            [1,2,0,1,2,None,None,None],\
-                                            [2,3,1,0,1,None,None,None],\
-                                            [3,4,2,1,0,None,None,None],\
-                                            [None,None,None,None,None,0,3,1],\
-                                            [None,None,None,None,None,3,0,2],\
-                                            [None,None,None,None,None,1,2,0]]
+    print(algs.get_shortest_paths(g,True))
+
+    np.testing.assert_equal(algs.get_shortest_paths(g,True),\
+                    np.array([[0,1,1,2,3,np.inf,np.inf,np.inf],\
+                                [1,0,2,3,4,np.inf,np.inf,np.inf],\
+                                [1,2,0,1,2,np.inf,np.inf,np.inf],\
+                                [2,3,1,0,1,np.inf,np.inf,np.inf],\
+                                [3,4,2,1,0,np.inf,np.inf,np.inf],\
+                                [np.inf,np.inf,np.inf,np.inf,np.inf,0,3,1],\
+                                [np.inf,np.inf,np.inf,np.inf,np.inf,3,0,2],\
+                                [np.inf,np.inf,np.inf,np.inf,np.inf,1,2,0]]\
+                                ,dtype=np.float64))
 
 def test_negative_cycles():
     """
@@ -175,6 +184,6 @@ def test_negative_cycles():
 
     with pytest.raises(Exception, match='Graph has a negative cycle.'):
         algs.get_shortest_paths(g,True)
-    assert algs.get_shortest_paths(g,False) == [[0,1,1],
+    assert np.array_equal(algs.get_shortest_paths(g,False),np.array([[0,1,1],
                                                 [1,0,1],
-                                                [1,1,0]]
+                                                [1,1,0]],dtype=np.float64))
