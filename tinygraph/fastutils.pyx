@@ -146,6 +146,8 @@ cpdef get_connected_components(tg):
 
     return out
 
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
 cdef np.float64_t[:,:] floyd_warshall(np.float64_t[:,:] distances, int n):
     cdef double newL = 0
     for k in range(n):
