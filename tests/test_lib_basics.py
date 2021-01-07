@@ -54,6 +54,34 @@ def test_graph_properties():
     assert g1.v['color'][3] == 8
     assert g1.e['color2'][2, 3] == 10
 
+def test_misbehavior():
+    """
+    Tests for illegal behavior handling
+    """
+    g = tg.TinyGraph(3,vp_types = {"color": np.int32},\
+                        ep_types = {"width": np.int32})
+    with pytest.raises(KeyError,match='Expecting exactly two endpoints.'):
+        g[0] = 3
+    with pytest.raises(KeyError, match='Expecting exactly two endpoints.'):
+        g[0,1,2] = 3
+    with pytest.raises(IndexError, match='Self-loops are not allowed.'):
+        g[1,1] = 3
+    with pytest.raises(KeyError,match='Expecting exactly two endpoints.'):
+        e = g[0]
+    with pytest.raises(KeyError, match='Expecting exactly two endpoints.'):
+        e = g[0,1,2]
+    with pytest.raises(KeyError,match='Expecting exactly two endpoints.'):
+        g.e['width'][0] = 3
+    with pytest.raises(KeyError, match='Expecting exactly two endpoints.'):
+        g.e['width'][0,1,2] = 3
+    with pytest.raises(KeyError,match='Expecting exactly two endpoints.'):
+        e = g.e["width"][0]
+    with pytest.raises(KeyError, match='Expecting exactly two endpoints.'):
+        e = g.e['width'][0,1,2]
+    with pytest.raises(IndexError):
+        g.v['color'][0,2] = 1
+    with pytest.raises(IndexError):
+        v = g.v['color'][0,2]
 
 def test_basic_functionality():
     t = tg.TinyGraph(2, vp_types={'color': np.int32})

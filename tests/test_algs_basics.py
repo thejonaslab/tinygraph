@@ -120,13 +120,13 @@ def test_paths_empty():
     """
     Test shortest paths on an empty graph.
     """
-    g = tg.TinyGraph(0,adj_type=boolean)
+    g = tg.TinyGraph(0,adj_type=np.bool)
 
     with pytest.raises(TypeError, match='Graph weights are not numbers.'):
         algs.get_shortest_paths(g,True)
 
     np.testing.assert_equal(algs.get_shortest_paths(g,False),
-                                np.array([[]],dtype=np.float64))
+                                np.zeros((0,0),dtype=np.float64))
 
 def test_paths_fully_connected():
     """

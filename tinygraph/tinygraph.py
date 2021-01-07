@@ -67,10 +67,10 @@ class EdgeProxy:
         Outputs:
             None
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         else:
             e1, e2 = key
             if self.__g[e1, e2] == default_zero(self.dtype):
@@ -89,10 +89,10 @@ class EdgeProxy:
         Outputs:
             value (dtype): Value of edge property.
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         else:
             e1, e2 = key
             if self.__g[e1, e2] == default_zero(self.dtype):
@@ -335,11 +335,13 @@ class TinyGraph:
         Outputs:
             None - modifications are made in place.
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         e1, e2 = key
+        if e1 == e2:
+            raise IndexError("Self-loops are not allowed.")
         self.adjacency[e1, e2] = newValue
         self.adjacency[e2, e1] = newValue
         if newValue == default_zero(self.adjacency.dtype):
@@ -357,10 +359,10 @@ class TinyGraph:
         Outputs:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
         """
-        if len(key) < 2:
-            raise IndexError("Must include both endpoints of edge.")
-        elif len(key) > 2:
-            raise IndexError("Too many endpoints given.")
+        if key.__class__ != tuple:
+            raise KeyError("Expecting exactly two endpoints.")
+        elif len(key) != 2:
+            raise KeyError("Expecting exactly two endpoints.")
         return self.adjacency[key[0]][key[1]]
 
     def copy(self):
