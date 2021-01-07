@@ -186,22 +186,12 @@ cpdef get_shortest_paths(tg, weighted):
         distances = np.ones_like(tg.adjacency, dtype = np.float64)
         distances[tg.adjacency == tinygraph.default_zero(tg.adjacency.dtype)] = np.inf
         distances[np.eye(tg.node_N) == 1] = 0
-        #distances=np.array([[0 if i == j else np.inf 
-        #                        if v==tinygraph.default_zero(tg.adjacency.dtype) 
-        #                        else 1 
-        #                        for i,v in enumerate(row)] 
-        #                        for j,row in enumerate(tg.adjacency)],
-        #                        dtype=np.float64)
     elif not np.issubdtype(tg.adjacency.dtype, np.number):
         raise TypeError("Graph weights are not numbers.")
     else:
         distances = np.array(tg.adjacency,dtype=np.float64,copy=True)
         distances[tg.adjacency == 0] = np.inf
         distances[np.eye(tg.node_N) == 1] = 0
-        #distances = np.array([[0 if i == j else np.inf if v == 0 else v 
-        #                        for i,v in enumerate(row)] 
-        #                        for j,row in enumerate(tg.adjacency)],
-        #                        dtype=np.float64)
     distances = np.array(floyd_warshall(distances, tg.node_N))
     for i in range(tg.node_N):
         if distances[i][i] < 0:
