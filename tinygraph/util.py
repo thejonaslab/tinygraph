@@ -56,8 +56,9 @@ def subgraph_relabel(g, node_list):
 
     # Magic index converter eliminates python-for-loops
     # at the expense of ignoring sparsity (moves everything)
-    old_list = np.arange(g.node_N)
-    ii = (np.repeat(old_list,  len(old_list)),  np.tile(old_list,  len(old_list)))
+    new_list = np.arange(g.node_N) # list of the new vertices
+    # node_list is a list of old vertices ordered by destination indices
+    ii = (np.repeat(new_list,  len(new_list)),  np.tile(new_list,  len(new_list)))
     jj = (np.repeat(node_list, len(node_list)), np.tile(node_list, len(node_list)))
 
     # Copy edge values
