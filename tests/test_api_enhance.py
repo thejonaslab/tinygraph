@@ -1,8 +1,15 @@
 import tinygraph as tg
-from tinygraph.util import graph_equality, subgraph_relabel, permute
+from tinygraph.util import graph_equality, subgraph_relabel, permute, subgraph
 import numpy as np
 import pytest
 import graph_test_suite
+
+basic_suite = graph_test_suite.create_suite()
+vp_suite = graph_test_suite.create_suite_vert_prop()
+ep_suite = graph_test_suite.create_suite_edge_prop()
+prop_suite = graph_test_suite.create_suite_global_prop()
+
+suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
 
 
 def test_vertices():
@@ -115,7 +122,7 @@ def test_permute():
     assert graph_equality(g1, pG13)
 
 def test_permute_path():
-    """Slightly harder case"""
+    """Another case"""
     g = tg.TinyGraph(4, np.bool, vp_types={'name': np.dtype('<U20')})
     perm = [2, 3, 1, 0]
     inv_perm = np.argsort(perm) # [3, 2, 0, 1]
@@ -161,7 +168,7 @@ def test_permute_error_handling():
     bad_perm_1 = [0]
     bad_perm_2 = [1, 3, 3, 4, 4]
     bad_perm_3 = [1, 3, 3, 4, 4, 2, 2, 1]
-    bad_perm_4 = [0, 3, 3, 4, 6]
+    bad_perm_4 = [-5, 0, 3, 3, 4, 6]
 
 
     # Is this behavior we want?
@@ -177,19 +184,70 @@ def test_permute_error_handling():
     with pytest.raises(IndexError):
         bg4 = permute(g1, bad_perm_4)
 
-# Moved down the import so we can get quick results faster
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-prop_suite = graph_test_suite.create_suite_global_prop()
+def test_permute_dict():
+    """Pass the permutation as a dictionary"""
+    perm = [2, 3, 1, 0]
+    # perm_dict = dict(zip(range(4), perm))
+    # purposely written out of order
+    perm_dict = {3:0, 0:2, 2:1, 1:3}
+    g = tg.TinyGraph(4, np.bool,
+                     vp_types = {'name' : np.dtype('<U20')})
+    g.v['name'][:] = ['a', 'b', 'c', 'd']
 
-suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
+    h = permute(g, perm_dict)
+
+    assert list(h.v['name']) == ['d', 'c', 'a', 'b']
+
+def test_subgraph_complete():
+    """Limiting case of a full graph"""
+    g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
+    sg = subgraph(g, range(5))
+
+    assert graph_equality(g, sg)
+
+def test_subgraph_empty():
+    """Limiting case of an empty graph"""
+    g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
+    sg = subgraph(g, [])
+
+    assert sg.node_N == 0
+    assert not graph_equality(g, sg)
+
+def test_subgraph_list():
+    """Check functionality for a list of nodes"""
+    rng = np.random.RandomState(0)
+    nodes = rng.choice(5, 3, replace=False)
+
+    g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
+    g.add_vert_prop('name', np.dtype('<U20'))
+    g.v['name'][:] = ['a', 'b', 'c', 'd', 'e']
+
+    sg = subgraph(g, nodes)
+
+    assert sg.node_N == 3
+    assert np.array_equal(sg.v['name'], np.array(g.v['name'])[nodes])
+
+    for n1, n2 in sg.edges():
+        assert sg[n1, n2] == g[nodes[n1], nodes[n2]]
+
+def test_subgraph_set():
+    """Check functionality for a set of nodes (as in vertex subset)"""
+    rng = np.random.RandomState(0)
+    nodes = set(rng.choice(5, 3, replace=False))
+
+    g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
+    g.add_vert_prop('name', np.dtype('<U20'))
+    g.v['name'][:] = ['a', 'b', 'c', 'd', 'e']
+
+    sg = subgraph(g, nodes)
+
+    node_list = sorted(list(nodes))
+    assert np.array_equal(sg.v['name'], np.array(g.v['name'])[node_list])
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_permutation_inversion(test_name):
     """Use the graph suite to permute and un-permute a graph"""
-    seed = 0
-    rng = np.random.RandomState(seed)
+    rng = np.random.RandomState(0)
 
     for g in suite[test_name]:
         # Get order and a random permutation
@@ -197,7 +255,44 @@ def test_permutation_inversion(test_name):
         perm     = rng.permutation(N)
         inv_perm = np.argsort(perm)
 
-        # Use the permute function
+        # Permute the permutation
+        # m e t a
+        order = rng.permutation(N)
+        inv_perm_dict = dict(zip(np.arange(N)[order], inv_perm[order]))
+
+        # Use the list version
         h = permute(g, perm)
-        g_prime = permute(h, inv_perm)
-        assert graph_equality(g, g_prime)
+        g2 = permute(h, inv_perm)
+        assert graph_equality(g, g2)
+
+        # Use the dict version
+        g3 = permute(h, inv_perm_dict)
+        assert graph_equality(g, g3)
+
+@pytest.mark.parametrize("test_name", [k for k in suite.keys()])
+def test_subgraph(test_name):
+    """Use the test suite to grab subgraphs (using sets)"""
+    rng = np.random.RandomState(0)
+
+    for g in suite[test_name]:
+        # Get order and a random permutation
+        N = g.node_N
+        SN = rng.randint(N)
+        node_list = sorted(rng.choice(N, SN, replace=False))
+        nodes = set(node_list)
+
+        h = subgraph(g, nodes)
+
+        # Check global properties
+        assert h.props == g.props
+
+        # Check vertex properties
+        for n in h.vertices():
+            for k in g.v.keys():
+                assert h.v[k][n] == g.v[k][node_list[n]]
+
+        # Check edge properties and weights
+        for n1, n2 in h.edges():
+            assert h[n1, n2] == g[node_list[n1], node_list[n2]]
+            for k in g.e.keys():
+                assert h.e[k][n1, n2] == g.e[k][node_list[n1], node_list[n2]]

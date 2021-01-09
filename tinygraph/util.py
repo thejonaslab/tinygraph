@@ -55,6 +55,10 @@ def subgraph_relabel(g, node_list):
     # Copy graph props
     new_g.props = {k:v for k, v in g.props.items()}
 
+    if N == 0:
+        # Weird things happen if we keep going ;_;
+        return new_g
+    
     # Magic index converter eliminates python-for-loops
     # at the expense of ignoring sparsity (moves everything)
     new_list = np.arange(N) # list of the new vertices
@@ -81,24 +85,30 @@ def permute(g, perm):
 
     Inputs:
         g (TinyGraph): Original TinyGraph to permute.
-        perm (map): A mapping from old vertices to new vertices, such that
+        perm (dict or list): A mapping from old vertices to new vertices, such that
             perm[old_vertex] = new_vertex.
 
     Outputs:
         new_g (TinyGraph): A new TinyGraph instance with each vertex, and its
             corresponding vertex and edge properties, permuted.
     """
+    # Internally use a list
+    if isinstance(perm, dict):
+        # sort order
+        so = np.argsort(list(perm.keys()))
+        perm = np.array(list(perm.values()))[so]
+
+    # Flip the order of stuff in perm
+    perm_inv = np.argsort(perm)
+
     if  len(perm) != g.node_N \
         or not np.array_equal(np.unique(perm), np.arange(g.node_N)):
         raise IndexError("Invalid permutation passed to permute!")
 
-    # flip the order of stuff in perm
-    perm_inv = np.argsort(perm)
-
     return subgraph_relabel(g, perm_inv)
 
 
-def subgraph(g, node_list):
+def subgraph(g, nodes):
     """
     Returns induced subgraph of g on nodes in node_list.
     Grabs all the relevant properties as well.
@@ -106,13 +116,16 @@ def subgraph(g, node_list):
 
     Inputs:
         g (TinyGraph): Original Tinygraph
-        node_list (list): list of indices of nodes to take as the nodes of the subgraph
+        nodes (list or set): list of indices of nodes to take as the nodes of the subgraph
 
     Output:
         sg (TinyGraph): subgraph
     """
-    if np.any(np.array(node_list) > g.node_N) \
-       or np.any(np.array(node_list) < 0):
-        raise IndexError(f"node_list contains out-of-bounds indices!")
+    if isinstance(nodes, set):
+        nodes = sorted(list(nodes))
 
-    return subgraph_relabel(g, node_list)
+    if  np.any(np.array(nodes) > g.node_N) \
+        or np.any(np.array(nodes) < 0):
+        raise IndexError(f"nodes list/set contains out-of-bounds indices!")
+
+    return subgraph_relabel(g, nodes)
