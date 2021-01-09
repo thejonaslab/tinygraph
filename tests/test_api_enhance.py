@@ -1,7 +1,9 @@
 import tinygraph as tg
-from tinygraph.util import graph_equality, permute
+from tinygraph.util import graph_equality, subgraph_relabel, permute
 import numpy as np
 import pytest
+import graph_test_suite
+
 
 def test_vertices():
     """
@@ -104,19 +106,34 @@ def test_permute():
     g1.e['color2'][2,3] = 4
     g2.e['color2'][2,1] = 4
 
-    pG11 = permute(g1, [3,4,1,2,0])
-    pG12 = permute(g1, [4,3,1,2,0])
+    pG11 = permute(g1,   [3,4,1,2,0])
+    pG12 = permute(g1,   [4,3,1,2,0])
     pG13 = permute(pG11, [4,2,3,0,1])
 
     assert not graph_equality(g2, pG11)
     assert graph_equality(g2, pG12)
     assert graph_equality(g1, pG13)
 
+def test_permute_path():
+    """Slightly harder case"""
+    g = tg.TinyGraph(4, np.bool, vp_types={'name': np.dtype('<U20')})
+    perm = [2, 3, 1, 0]
+    inv_perm = np.argsort(perm) # [3, 2, 0, 1]
+    g.v['name'][:] = ['a', 'b', 'c', 'd']
+    g[0, 1] = 1
+    g[1, 2] = 1
+    g[2, 3] = 1
+
+    # import pdb; pdb.set_trace()
+    h  = permute(g, perm)
+    gp = permute(h, inv_perm)
+    assert graph_equality(g, gp)
+
 def test_permute_identity():
     """Ensure that the identity permutation preserves graph equality"""
     g1 = tg.TinyGraph(5, np.int32,
                       vp_types = {'color' : np.int32},
-                      ep_types = {'color2' : np.int32})    
+                      ep_types = {'color2' : np.int32})
     g1[0, 1] = 5
     g1[1, 3] = 3
     g1[2, 3] = 1
@@ -132,7 +149,7 @@ def test_permute_error_handling():
     """Demonstrate behavior in case not handed a proper permutation"""
     g1 = tg.TinyGraph(5, np.int32,
                       vp_types = {'color' : np.int32},
-                      ep_types = {'color2' : np.int32})    
+                      ep_types = {'color2' : np.int32})
     g1[0, 1] = 5
     g1[1, 3] = 3
     g1[2, 3] = 1
@@ -151,14 +168,36 @@ def test_permute_error_handling():
     with pytest.raises(IndexError):
         bg1 = permute(g1, bad_perm_1)
 
-    # No error
-    bg2 = permute(g1, bad_perm_2)
-    bg3 = permute(g1, bad_perm_3)
+    with pytest.raises(IndexError):
+        bg2 = permute(g1, bad_perm_2)
+
+    with pytest.raises(IndexError):
+        bg3 = permute(g1, bad_perm_3)
 
     with pytest.raises(IndexError):
         bg4 = permute(g1, bad_perm_4)
 
+# Moved down the import so we can get quick results faster
+basic_suite = graph_test_suite.create_suite()
+vp_suite = graph_test_suite.create_suite_vert_prop()
+ep_suite = graph_test_suite.create_suite_edge_prop()
+prop_suite = graph_test_suite.create_suite_global_prop()
 
-def test_permutation_inversion():
-    """Use the graph suite"""
-    pass
+suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
+
+@pytest.mark.parametrize("test_name", [k for k in suite.keys()])
+def test_permutation_inversion(test_name):
+    """Use the graph suite to permute and un-permute a graph"""
+    seed = 0
+    rng = np.random.RandomState(seed)
+
+    for g in suite[test_name]:
+        # Get order and a random permutation
+        N = g.node_N
+        perm     = rng.permutation(N)
+        inv_perm = np.argsort(perm)
+
+        # Use the permute function
+        h = permute(g, perm)
+        g_prime = permute(h, inv_perm)
+        assert graph_equality(g, g_prime)

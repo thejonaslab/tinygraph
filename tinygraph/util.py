@@ -48,29 +48,30 @@ def subgraph_relabel(g, node_list):
     Outputs:
         sg (TinyGraph): subgraph with nodes in the same order as node_list
     """
-    new_g = tg.TinyGraph(len(node_list), g.adjacency.dtype,
+    N = len(node_list)
+    new_g = tg.TinyGraph(N, g.adjacency.dtype,
                     {p:val.dtype for p, val in g.v.items()},
                     {p:val.dtype for p, val in g.e.items()})
     # Copy graph props
-    new_g.props = {k:v for k, v in g.props}
+    new_g.props = {k:v for k, v in g.props.items()}
 
     # Magic index converter eliminates python-for-loops
     # at the expense of ignoring sparsity (moves everything)
-    new_list = np.arange(g.node_N) # list of the new vertices
+    new_list = np.arange(N) # list of the new vertices
     # node_list is a list of old vertices ordered by destination indices
-    ii = (np.repeat(new_list,  len(new_list)),  np.tile(new_list,  len(new_list)))
-    jj = (np.repeat(node_list, len(node_list)), np.tile(node_list, len(node_list)))
+    ii = (np.repeat(new_list,  N),  np.tile(new_list,  N))
+    jj = (np.repeat(node_list, N),  np.tile(node_list, N))
 
     # Copy edge values
     new_g.adjacency[ii] = g.adjacency[jj]
 
     # Copy vertex properties
     for prop in g.v.keys():
-        new_g.v[prop][:] = new_g.v[prop][node_list]
+        new_g.v[prop][:] = g.v[prop][node_list]
 
     # Copy edge properties
     for prop in g.e.keys():
-        new_g.e[prop][ii] = g.e[prop][jj]
+        new_g.e_p[prop][ii] = g.e_p[prop][jj]
 
     return new_g
 
@@ -87,26 +88,14 @@ def permute(g, perm):
         new_g (TinyGraph): A new TinyGraph instance with each vertex, and its
             corresponding vertex and edge properties, permuted.
     """
-    # new_g = tg.TinyGraph(g.node_N, g.adjacency.dtype,
-    #                 {p:val.dtype for p, val in g.v.items()},
-    #                 {p:val.dtype for p, val in g.e.items()})
-
-    # for (e1, e2, w, d) in g.edges(weight=True, edge_props=g.e.keys()):
-    #     new_g[perm[e1], perm[e2]] = w
-    #     for prop, val in d.items():
-    #         new_g.e[prop][perm[e1], perm[e2]] = val
-    # for ind, d in g.vertices(vert_props=g.v.keys()):
-    #     for prop, val in d.items():
-    #         new_g.v[prop][perm[ind]] = val
-    # return new_g
-
     if  len(perm) != g.node_N \
-        or not np.all(np.unique(perm) == np.arange(g.node_N)):
+        or not np.array_equal(np.unique(perm), np.arange(g.node_N)):
         raise IndexError("Invalid permutation passed to permute!")
 
-    # TODO: flip the order of stuff in perm
+    # flip the order of stuff in perm
+    perm_inv = np.argsort(perm)
 
-    return subgraph_relabel(g, perm)
+    return subgraph_relabel(g, perm_inv)
 
 
 def subgraph(g, node_list):
@@ -122,10 +111,8 @@ def subgraph(g, node_list):
     Output:
         sg (TinyGraph): subgraph
     """
-    # Depending on resolution of permute() error handling, we might be able to reuse
-    # that code instead.
-
-    if np.any(np.array(node_list) > g.node_N):
-        raise IndexError(f"node_list is too long ({len(node_list)} vs {g.node_N})!")
+    if np.any(np.array(node_list) > g.node_N) \
+       or np.any(np.array(node_list) < 0):
+        raise IndexError(f"node_list contains out-of-bounds indices!")
 
     return subgraph_relabel(g, node_list)
