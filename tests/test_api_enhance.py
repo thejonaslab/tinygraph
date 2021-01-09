@@ -1,4 +1,4 @@
-import tinygraph as tg 
+import tinygraph as tg
 from tinygraph.util import graph_equality, permute
 import numpy as np
 import pytest
@@ -7,7 +7,7 @@ def test_vertices():
     """
     Simple test of getting vertex properties.
     """
-    g = tg.TinyGraph(5, np.int32, vp_types = {'color': np.int32, 
+    g = tg.TinyGraph(5, np.int32, vp_types = {'color': np.int32,
                                                 'elem': np.bool})
     g.v['color'][0] = 3
     g.v['color'][1] = 4
@@ -30,7 +30,7 @@ def test_edges():
     """
     Simple test of getting edge properties.
     """
-    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32, 
+    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32,
                                                 'elem': np.bool})
     g[0,4] = 10
     g[1,0] = 20
@@ -54,13 +54,13 @@ def test_edges():
         assert w == weights[(i,j)]
     for i, j, d in g.edges(edge_props = ['elem']):
         assert len(d) == 1
-        assert d['elem'] == elem[(i,j)] 
+        assert d['elem'] == elem[(i,j)]
 
 def test_remove_edge():
     """
     Simple test of removing edges.
     """
-    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32, 
+    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32,
                                                 'elem': np.bool})
     g[0,4] = 10
     g[1,0] = 20
@@ -111,3 +111,54 @@ def test_permute():
     assert not graph_equality(g2, pG11)
     assert graph_equality(g2, pG12)
     assert graph_equality(g1, pG13)
+
+def test_permute_identity():
+    """Ensure that the identity permutation preserves graph equality"""
+    g1 = tg.TinyGraph(5, np.int32,
+                      vp_types = {'color' : np.int32},
+                      ep_types = {'color2' : np.int32})    
+    g1[0, 1] = 5
+    g1[1, 3] = 3
+    g1[2, 3] = 1
+    g1[0, 4] = 2
+    g1.v['color'][0] = 10
+    g1.e['color2'][2,3] = 4
+
+    g2 = permute(g1, [0, 1, 2, 3, 4])
+
+    assert graph_equality(g1, g2)
+
+def test_permute_error_handling():
+    """Demonstrate behavior in case not handed a proper permutation"""
+    g1 = tg.TinyGraph(5, np.int32,
+                      vp_types = {'color' : np.int32},
+                      ep_types = {'color2' : np.int32})    
+    g1[0, 1] = 5
+    g1[1, 3] = 3
+    g1[2, 3] = 1
+    g1[0, 4] = 2
+    g1.v['color'][0] = 10
+    g1.e['color2'][2,3] = 4
+
+
+    bad_perm_1 = [0]
+    bad_perm_2 = [1, 3, 3, 4, 4]
+    bad_perm_3 = [1, 3, 3, 4, 4, 2, 2, 1]
+    bad_perm_4 = [0, 3, 3, 4, 6]
+
+
+    # Is this behavior we want?
+    with pytest.raises(IndexError):
+        bg1 = permute(g1, bad_perm_1)
+
+    # No error
+    bg2 = permute(g1, bad_perm_2)
+    bg3 = permute(g1, bad_perm_3)
+
+    with pytest.raises(IndexError):
+        bg4 = permute(g1, bad_perm_4)
+
+
+def test_permutation_inversion():
+    """Use the graph suite"""
+    pass
