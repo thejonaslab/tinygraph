@@ -244,6 +244,35 @@ def test_subgraph_set():
     node_list = sorted(list(nodes))
     assert np.array_equal(sg.v['name'], np.array(g.v['name'])[node_list])
 
+def test_subgraph_error():
+    """Check error-handling for out-of-bounds stuff"""
+    nodes = set([0, 1, 12])
+    g = tg.TinyGraph(5)
+    with pytest.raises(IndexError):
+        sg = subgraph(g, nodes)
+
+    nodes2 = set([-1, 0, 3, 4])
+    with pytest.raises(IndexError):
+        sg2 = subgraph(g, nodes2)
+
+def test_subgraph_duplicate():
+    """Check that we can duplicate nodes if we like"""
+    nodes = [0, 0, 1]
+    g = tg.TinyGraph(2, vp_types={'name':np.dtype('<U10')})
+    g.v['name'][:] = ['a', 'b']
+    g[0, 1] = 1
+
+    sg = subgraph(g, nodes)
+
+    adj = np.zeros((3, 3), dtype=np.int32)
+    adj[0, 2] = 1
+    adj[2, 0] = 1
+    adj[1, 2] = 1
+    adj[2, 1] = 1
+    assert sg.node_N == 3
+    assert np.array_equal(adj, sg.adjacency)
+    assert np.array_equal(['a', 'a', 'b'], sg.v['name'])
+
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_permutation_inversion(test_name):
     """Use the graph suite to permute and un-permute a graph"""

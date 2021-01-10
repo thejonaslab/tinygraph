@@ -192,19 +192,7 @@ def merge(g1, g2):
         new_g.v[prop][i2] = g2.v[prop] if prop in vp_type2.keys() \
             else tg.default_zero(prop_type)
 
-        # # May be clearer but seems overly complicated to me
-        # if prop in vp_type1.keys():
-        #     new_g.v[prop][i1] = g1.v[prop]
-        # else:
-        #     new_g.v[prop][i1] = tg.default_zero(prop_type)
-
-        # # Load stuff from g2
-        # if prop in vp_type2.keys():
-        #     new_g.v[prop][i2] = g2.v[prop]
-        # else:
-        #     new_g.v[prop][i2] = tg.default_zero(prop_type)
-
-    # Edge indices
+    # Edge indices for easy manipulation
     i11 = (np.repeat(i1, len(i1)), np.tile(i1, len(i1)))
     i12 = (np.repeat(i1, len(i2)), np.tile(i2, len(i1)))
     i21 = (np.repeat(i2, len(i1)), np.tile(i1, len(i2)))
@@ -212,20 +200,20 @@ def merge(g1, g2):
 
     # Edge weights
     new_g.adjacency[i11] = g1.adjacency.flatten()
+    new_g.adjacency[i22] = g2.adjacency.flatten()
+
     new_g.adjacency[i12] = tg.default_zero(adj_type)
     new_g.adjacency[i21] = tg.default_zero(adj_type)
-    new_g.adjacency[i22] = g2.adjacency.flatten()
 
     # Edge properties
     for prop, prop_type in ep_types.items():
-        new_g.e_p[prop][i12] = tg.default_zero(prop_type)
-        new_g.e_p[prop][i21] = tg.default_zero(prop_type)
-
         new_g.e_p[prop][i11] = g1.e_p[prop] if prop in ep_type1.keys() \
             else tg.default_zero(prop_type)
 
         new_g.e_p[prop][i22] = g2.e_p[prop] if prop in ep_type2.keys() \
             else tg.default_zero(prop_type)
 
+        new_g.e_p[prop][i12] = tg.default_zero(prop_type)
+        new_g.e_p[prop][i21] = tg.default_zero(prop_type)
 
     return new_g
