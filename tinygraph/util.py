@@ -1,7 +1,7 @@
 import numpy as np
 import tinygraph as tg
 from tinygraph import EdgeProxy
-
+import warnings
 
 def graph_equality(g1, g2):
     """
@@ -58,7 +58,7 @@ def subgraph_relabel(g, node_list):
     if N == 0:
         # Weird things happen if we keep going ;_;
         return new_g
-    
+
     # Magic index converter eliminates python-for-loops
     # at the expense of ignoring sparsity (moves everything)
     new_list = np.arange(N) # list of the new vertices
@@ -115,7 +115,7 @@ def subgraph(g, nodes):
     Raises an index error in case of invalid nodes in node_list.
 
     Inputs:
-        g (TinyGraph): Original Tinygraph
+        g (TinyGraph): Original TinyGraph
         nodes (list or set): list of indices of nodes to take as the nodes of the subgraph
 
     Output:
@@ -129,3 +129,103 @@ def subgraph(g, nodes):
         raise IndexError(f"nodes list/set contains out-of-bounds indices!")
 
     return subgraph_relabel(g, nodes)
+
+
+def merge(g1, g2):
+    """
+    Produces a new graph resulting from taking the (disjoint) superset of vertices in g1 and g2.
+    Raises a TypeError in case the adjacency matrices are of different dtypes.
+    Raises a warning in case the vertex or edge properties are different.
+
+    Combine the graph properties, but in case of key collision favors g1's value.
+
+
+    Inputs:
+        g1 (TinyGraph): Original TinyGraph, has precedence for global graph properties
+        g2 (TinyGraph): Other original TinyGraph
+
+    Output:
+        new_g (TinyGraph): result of the merge
+    """
+    # Check for type matching
+    if g1.adjacency.dtype != g2.adjacency.dtype:
+        raise TypeError("g1 and g2 do not share adjacency matrix types!")
+    adj_type = g1.adjacency.dtype
+
+    if set(g1.v.keys()) != set(g2.v.keys()):
+        warnings.warn("Graph merge: vertex properties don't all match!")
+
+    vp_type1 = {p:val.dtype for p, val in g1.v.items()}
+    vp_type2 = {p:val.dtype for p, val in g2.v.items()}
+    for k in vp_type1:
+        if k in vp_type2.keys():
+            if vp_type1[k] != vp_type2[k]:
+                raise TypeError(f"dtype for vertex property {k} does not match!")
+    vp_types = {**vp_type1, **vp_type2}
+
+    ep_type1 = {p:val.dtype for p, val in g1.e.items()}
+    ep_type2 = {p:val.dtype for p, val in g2.e.items()}
+    for k in ep_type1:
+        if k in ep_type2.keys():
+            if ep_type1[k] != ep_type2[k]:
+                raise TypeError(f"dtype for vertex property {k} does not match!")
+    ep_types = {**ep_type1, **ep_type2}
+
+    if set(g1.e.keys()) != set(g2.e.keys()):
+        warnings.warn("Graph merge: edge properties don't all match!")
+
+    N = g1.node_N + g2.node_N
+    new_g = tg.TinyGraph(N, adj_type, vp_types, ep_types)
+
+    new_g.props = {**g2.props, **g1.props} # g1 later gives it precedence
+
+    # Vertex properties
+    i1 = np.arange(g1.node_N)
+    i2 = np.arange(g1.node_N, g1.node_N+g2.node_N)
+
+    for prop, prop_type in vp_types.items():
+        # Load stuff from g1
+        new_g.v[prop][i1] = g1.v[prop] if prop in vp_type1.keys() \
+            else tg.default_zero(prop_type)
+
+        # Load stuff from g2
+        new_g.v[prop][i2] = g2.v[prop] if prop in vp_type2.keys() \
+            else tg.default_zero(prop_type)
+
+        # # May be clearer but seems overly complicated to me
+        # if prop in vp_type1.keys():
+        #     new_g.v[prop][i1] = g1.v[prop]
+        # else:
+        #     new_g.v[prop][i1] = tg.default_zero(prop_type)
+
+        # # Load stuff from g2
+        # if prop in vp_type2.keys():
+        #     new_g.v[prop][i2] = g2.v[prop]
+        # else:
+        #     new_g.v[prop][i2] = tg.default_zero(prop_type)
+
+    # Edge indices
+    i11 = (np.repeat(i1, len(i1)), np.tile(i1, len(i1)))
+    i12 = (np.repeat(i1, len(i2)), np.tile(i2, len(i1)))
+    i21 = (np.repeat(i2, len(i1)), np.tile(i1, len(i2)))
+    i22 = (np.repeat(i2, len(i2)), np.tile(i2, len(i2)))
+
+    # Edge weights
+    new_g.adjacency[i11] = g1.adjacency.flatten()
+    new_g.adjacency[i12] = tg.default_zero(adj_type)
+    new_g.adjacency[i21] = tg.default_zero(adj_type)
+    new_g.adjacency[i22] = g2.adjacency.flatten()
+
+    # Edge properties
+    for prop, prop_type in ep_types.items():
+        new_g.e_p[prop][i12] = tg.default_zero(prop_type)
+        new_g.e_p[prop][i21] = tg.default_zero(prop_type)
+
+        new_g.e_p[prop][i11] = g1.e_p[prop] if prop in ep_type1.keys() \
+            else tg.default_zero(prop_type)
+
+        new_g.e_p[prop][i22] = g2.e_p[prop] if prop in ep_type2.keys() \
+            else tg.default_zero(prop_type)
+
+
+    return new_g
