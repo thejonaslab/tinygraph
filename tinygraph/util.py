@@ -152,9 +152,6 @@ def merge(g1, g2):
         raise TypeError("g1 and g2 do not share adjacency matrix types!")
     adj_type = g1.adjacency.dtype
 
-    if set(g1.v.keys()) != set(g2.v.keys()):
-        warnings.warn("Graph merge: vertex properties don't all match!")
-
     vp_type1 = {p:val.dtype for p, val in g1.v.items()}
     vp_type2 = {p:val.dtype for p, val in g2.v.items()}
     for k in vp_type1:
@@ -162,6 +159,7 @@ def merge(g1, g2):
             if vp_type1[k] != vp_type2[k]:
                 raise TypeError(f"dtype for vertex property {k} does not match!")
     vp_types = {**vp_type1, **vp_type2}
+
 
     ep_type1 = {p:val.dtype for p, val in g1.e.items()}
     ep_type2 = {p:val.dtype for p, val in g2.e.items()}
@@ -171,6 +169,9 @@ def merge(g1, g2):
                 raise TypeError(f"dtype for vertex property {k} does not match!")
     ep_types = {**ep_type1, **ep_type2}
 
+    # Warnings after errors
+    if set(g1.v.keys()) != set(g2.v.keys()):
+        warnings.warn("Graph merge: vertex properties don't all match!")
     if set(g1.e.keys()) != set(g2.e.keys()):
         warnings.warn("Graph merge: edge properties don't all match!")
 
@@ -207,10 +208,10 @@ def merge(g1, g2):
 
     # Edge properties
     for prop, prop_type in ep_types.items():
-        new_g.e_p[prop][i11] = g1.e_p[prop] if prop in ep_type1.keys() \
+        new_g.e_p[prop][i11] = g1.e_p[prop].flatten() if prop in ep_type1.keys() \
             else tg.default_zero(prop_type)
 
-        new_g.e_p[prop][i22] = g2.e_p[prop] if prop in ep_type2.keys() \
+        new_g.e_p[prop][i22] = g2.e_p[prop].flatten() if prop in ep_type2.keys() \
             else tg.default_zero(prop_type)
 
         new_g.e_p[prop][i12] = tg.default_zero(prop_type)

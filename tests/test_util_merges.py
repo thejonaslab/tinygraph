@@ -51,6 +51,43 @@ def test_merge_identity():
     assert graph_equality(g1, gg)
     assert graph_equality(g1, gh)
 
+def test_prop_types():
+    g1 = tg.TinyGraph(2, np.int32, vp_types={'name':np.dtype('<U10')}, ep_types={'length':np.double})
+    g1.v['name'][:] = ['aaa', 'baa']
+    g1.props['name'] = 'base'
+    g1[0, 1] = 1
+    g1.e['length'][0, 1] = 2.2
+
+    g2 = tg.TinyGraph(2, np.double, vp_types={}, ep_types={'length':np.double})
+    with pytest.raises(TypeError):
+        merge(g1, g2)
+
+    g3 = tg.TinyGraph(2, np.int32, vp_types={}, ep_types={'length':np.int})
+    g3.props['name'] = 'secondary'
+    g3[0, 1] = 2
+    g3.e['length'][0, 1] = 4
+    with pytest.raises(TypeError):
+        merge(g1, g3)
+
+    g4 = tg.TinyGraph(2, np.int32, vp_types={}, ep_types={'length':np.double})
+    g4.props['name'] = 'secondary'
+    g4[0, 1] = 2
+    g4.e['length'][0, 1] = 4.0
+    with pytest.warns(UserWarning):
+        gg = merge(g1, g4)
+        assert np.array_equal(gg.v['name'], ['aaa', 'baa', '', ''])
+
+    g5 = tg.TinyGraph(2, np.int32, vp_types={'name':np.dtype('<U10')}, ep_types={'length':np.double})
+    g5.props['name'] = 'secondary'
+    g5.v['name'][:] = ['hello', 'world']
+    g5[0, 1] = 2
+    g5.e['length'][0, 1] = 4.0
+
+    gh = merge(g1, g5)
+    assert gh.props['name'] == 'base'
+    assert np.array_equal(gh.v['name'], ['aaa', 'baa', 'hello', 'world'])
+    assert gh.e['length'][0, 1] == g1.e['length'][0, 1]
+    assert gh.e['length'][2, 3] == g5.e['length'][0, 1]
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_subgraph(test_name):
