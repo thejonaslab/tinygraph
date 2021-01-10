@@ -93,20 +93,16 @@ def permute(g, perm):
             corresponding vertex and edge properties, permuted.
     """
     # Internally use a list
-    if isinstance(perm, dict):
-        # sort order
-        so = np.argsort(list(perm.keys()))
-        perm = np.array(list(perm.values()))[so]
-
-    # Flip the order of stuff in perm
-    perm_inv = np.argsort(perm)
+    perm = [perm[i] for i in range(len(perm))]
 
     if  len(perm) != g.node_N \
         or not np.array_equal(np.unique(perm), np.arange(g.node_N)):
         raise IndexError("Invalid permutation passed to permute!")
 
-    return subgraph_relabel(g, perm_inv)
+    # Flip the order of stuff in perm
+    perm_inv = np.argsort(perm)
 
+    return subgraph_relabel(g, perm_inv)
 
 def subgraph(g, nodes):
     """
@@ -122,6 +118,7 @@ def subgraph(g, nodes):
         sg (TinyGraph): subgraph
     """
     if isinstance(nodes, set):
+        # I think it's probably pretty cheap so I'll leave the sort
         nodes = sorted(list(nodes))
 
     if  np.any(np.array(nodes) > g.node_N) \
@@ -146,6 +143,7 @@ def merge(g1, g2):
 
     Output:
         new_g (TinyGraph): result of the merge
+            note: completely detached from any data living within g1 or g2
     """
     # Check for type matching
     if g1.adjacency.dtype != g2.adjacency.dtype:
@@ -154,7 +152,7 @@ def merge(g1, g2):
 
     vp_type1 = {p:val.dtype for p, val in g1.v.items()}
     vp_type2 = {p:val.dtype for p, val in g2.v.items()}
-    for k in vp_type1:
+    for k in vp_type1.keys():
         if k in vp_type2.keys():
             if vp_type1[k] != vp_type2[k]:
                 raise TypeError(f"dtype for vertex property {k} does not match!")
@@ -163,7 +161,7 @@ def merge(g1, g2):
 
     ep_type1 = {p:val.dtype for p, val in g1.e.items()}
     ep_type2 = {p:val.dtype for p, val in g2.e.items()}
-    for k in ep_type1:
+    for k in ep_type1.keys():
         if k in ep_type2.keys():
             if ep_type1[k] != ep_type2[k]:
                 raise TypeError(f"dtype for vertex property {k} does not match!")
@@ -175,6 +173,7 @@ def merge(g1, g2):
     if set(g1.e.keys()) != set(g2.e.keys()):
         warnings.warn("Graph merge: edge properties don't all match!")
 
+    # Initialize the new merged graph
     N = g1.node_N + g2.node_N
     new_g = tg.TinyGraph(N, adj_type, vp_types, ep_types)
 
