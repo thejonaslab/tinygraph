@@ -363,7 +363,7 @@ class TinyGraph:
             raise KeyError("Expecting exactly two endpoints.")
         elif len(key) != 2:
             raise KeyError("Expecting exactly two endpoints.")
-        return self.adjacency[key[0]][key[1]]
+        return self.adjacency[key[0], key[1]]
 
     def copy(self):
         """
