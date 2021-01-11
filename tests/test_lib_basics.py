@@ -229,9 +229,100 @@ def test_copy_suite(test_name):
     for g in suite[test_name]:
         g1 = g.copy()
         assert tg.util.graph_equality(g, g1)
+
+        # Change g1 but not g
         g1.add_vert_prop('useless_vertex_property', np.bool)
         assert not tg.util.graph_equality(g, g1)
-        g2 = g1.copy()
-        g2.remove_vert_prop('useless_vertex_property')
-        assert not tg.util.graph_equality(g, g1)
-        assert tg.util.graph_equality(g, g2)
+
+
+def test_sequence_adjacency():
+    """
+    Ensure that sequences can be used to modify the adjacency matrix compactly
+    """
+    g = tg.TinyGraph(3, np.int)
+    # Edges:
+    g[[0, 1, 2], [1, 2, 0]] = np.array([1, 2, 3])
+
+    # Desired effect on adjacency matrix
+    assert np.array_equal(g.adjacency, np.array([[0, 1, 3], [1, 0, 2], [3, 2, 0]]))
+
+    # And __getitem__ fetches just a 3-item array rather than something weird
+    assert np.array_equal(g[[0, 1, 2], [1, 2, 0]], [1, 2, 3])
+
+    # Conflicting writes are dealt with
+    g[[0, 1], [1, 0]] = [7, 8]
+    # still symmetric!
+    assert np.array_equal(g.adjacency, g.adjacency.T)
+
+    # Add an edge from 0 to 2
+    g[range(1), range(2, 3)] = 13
+    assert g.adjacency[0, 2] == 13
+
+    # zero-out everything
+    g[[0, 1, 2], [1, 2, 0]] = 0
+    assert np.all(g.adjacency == 0)
+
+def test_sequence_adjacency_errors():
+    """
+    Test the error-handling for poorly setting adjacency matrix values
+    """
+    g = tg.TinyGraph(3, np.int)
+    with pytest.raises(KeyError):
+        g[[0, 0, 0], [1, 2]] = 1
+
+    with pytest.raises(IndexError):
+        # Attempt to set self-edges
+        g[[0, 1], [0, 1]] = 5
+
+    with pytest.raises(ValueError):
+        # length mismatch -> numpy shape mismatch
+        g[[0, 1], [1, 2]] = [5, 2, 6]
+
+def test_sequence_vprop():
+    """
+    Test that sequences can be used for assigning vertex properties
+    """
+    g = tg.TinyGraph(3, vp_types={'name':np.dtype('<U10'), 'number':np.int})
+    g.v['name'][[0, 2, 1]] = ['a', 'c', 'b']
+    g.v['number'][[1, 2, 0]] = [2, 3, 1]
+
+    assert np.array_equal(g.v['name'], ['a', 'b', 'c'])
+    assert np.array_equal(g.v['number'], [1, 2, 3])
+
+
+def test_sequence_eprop():
+    """
+    Test that sequences can be used for assigning edge properties
+    """
+    g = tg.TinyGraph(3, ep_types={'edgecolor':np.int})
+
+    # Edges: 0-2, 1-2
+    g[[0, 1], [2, 2]] = [1, 1]
+    g.e['edgecolor'][[0, 1], [2, 2]] = [1, 2]
+    assert np.array_equal(g.e_p['edgecolor'], np.array([[0, 0, 1], [0, 0, 2], [1, 2, 0]]))
+
+    # Ensure some kind of consistency (symmetric e_p)
+    g[0, 1] = 5
+    g.e['edgecolor'][[0, 1], [1, 0]] = [7, 8]
+    assert np.array_equal(g.e_p['edgecolor'], g.e_p['edgecolor'].T)
+
+    # Edge deletion results in property deletion
+    g[0, 1] = 0
+    assert g.e_p['edgecolor'][1, 0] == 0
+
+def test_sequence_eprop_errors():
+    """
+    Test the error-handling for poorly setting edge properties with sequences
+    """
+    g = tg.TinyGraph(3, ep_types={'edgecolor':np.int})
+
+    with pytest.raises(KeyError):
+        g.e['edgecolor'][[0, 0, 0], [1, 2]] = 1
+
+    with pytest.raises(IndexError):
+        # Attempt to set self-edges
+        g.e['edgecolor'][[0, 1], [0, 1]] = 5
+
+    with pytest.raises(IndexError):
+        # length mismatch
+        g.e['edgecolor'][[0, 1], [1, 2]] = [5, 2, 6]
