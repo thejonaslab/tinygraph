@@ -207,7 +207,7 @@ def test_graph_props():
     Simple tests of per-graph properties
 
     """
-    
+
     g1 = tg.TinyGraph(10)
     g1.props['foo'] = 'bar'
 
@@ -217,9 +217,9 @@ def test_graph_props():
     assert tg.util.graph_equality(g1, g2)
 
     g2.props['baz'] = 7
-    
+
     assert not tg.util.graph_equality(g1, g2)
-    
+
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_copy_suite(test_name):
@@ -228,5 +228,10 @@ def test_copy_suite(test_name):
     """
     for g in suite[test_name]:
         g1 = g.copy()
-        assert tg.util.graph_equality(g1, g)
-        
+        assert tg.util.graph_equality(g, g1)
+        g1.add_vert_prop('useless_vertex_property', np.bool)
+        assert not tg.util.graph_equality(g, g1)
+        g2 = g1.copy()
+        g2.remove_vert_prop('useless_vertex_property')
+        assert not tg.util.graph_equality(g, g1)
+        assert tg.util.graph_equality(g, g2)
