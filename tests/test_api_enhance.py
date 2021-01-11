@@ -300,15 +300,15 @@ def test_permutation_inversion(test_name):
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_subgraph(test_name):
-    """Use the test suite to grab subgraphs (using sets)"""
+    """Use the test suite to grab subgraphs"""
     rng = np.random.RandomState(0)
 
     for g in suite[test_name]:
         # Get order and a random permutation
         N = g.node_N
         SN = rng.randint(N)
-        node_list = sorted(rng.choice(N, SN, replace=False))
-        nodes = set(node_list)
+        node_list = rng.choice(N, SN, replace=False)
+        nodes = sorted(node_list)
 
         h = subgraph(g, nodes)
 
@@ -318,10 +318,29 @@ def test_subgraph(test_name):
         # Check vertex properties
         for n in h.vertices():
             for k in g.v.keys():
-                assert h.v[k][n] == g.v[k][node_list[n]]
+                assert h.v[k][n] == g.v[k][nodes[n]]
 
         # Check edge properties and weights
         for n1, n2 in h.edges():
-            assert h[n1, n2] == g[node_list[n1], node_list[n2]]
+            assert h[n1, n2] == g[nodes[n1], nodes[n2]]
             for k in g.e.keys():
-                assert h.e[k][n1, n2] == g.e[k][node_list[n1], node_list[n2]]
+                assert h.e[k][n1, n2] == g.e[k][nodes[n1], nodes[n2]]
+
+        # Check behavior with nodes
+        g.add_vert_prop('old_vertex_id', np.int)
+        g.v['old_vertex_id'][:] = np.arange(g.node_N)
+
+        # Unclear what ordering will result from iterating over nodeset
+        # so just check that we can reconstruct the original
+        nodeset = set(node_list)
+        h_set = subgraph(g, nodeset)
+
+        # Attempt to reconstruct the subgraph `h` made with `nodes`.
+        # Note that h_set.v['old_vertex_id'] has indices that lie outside
+        # the normal range. So, we perform an argsort and a reverse argsort
+        # which brings all the indices in range and preserves the order.
+        order = np.argsort(h_set.v['old_vertex_id'])
+        h_rec = permute(h_set, order)
+        h_rec.remove_vert_prop('old_vertex_id')
+
+        assert graph_equality(h, h_rec)

@@ -33,22 +33,22 @@ def graph_equality(g1, g2):
 
     return True
 
-def subgraph_relabel(g, node_list):
+def subgraph_relabel(g, node_iter):
     """
     Helper function to perform the work of permute and subgraph.
-    Formally, it returns the subgraph of g induced by node_list (as the set of vertices)
+    Formally, it returns the subgraph of g induced by node_iter (as the set of vertices)
 
     Inputs:
         g (TinyGraph): Original Tinygraph
 
-        node_list (list): list of indices of nodes to take as the nodes of the subgraph
-            Contrary to permute(...), here we expect node_list[new_vertex] = old_vertex
+        node_iter (iterable): list of indices of nodes to take as the nodes of the subgraph
+            Contrary to permute(...), here we expect node_iter[new_vertex] = old_vertex
             in order to support dropping (and possibly duplicating) old vertices
 
     Outputs:
-        sg (TinyGraph): subgraph with nodes in the same order as node_list
+        sg (TinyGraph): subgraph with nodes in the same order as node_iter
     """
-    N = len(node_list)
+    N = len(node_iter)
     new_g = tg.TinyGraph(N, g.adjacency.dtype,
                     {p:val.dtype for p, val in g.v.items()},
                     {p:val.dtype for p, val in g.e.items()})
@@ -62,16 +62,16 @@ def subgraph_relabel(g, node_list):
     # Magic index converter eliminates python-for-loops
     # at the expense of ignoring sparsity (moves everything)
     new_list = np.arange(N) # list of the new vertices
-    # node_list is a list of old vertices ordered by destination indices
+    # node_iter is a list of old vertices ordered by destination indices
     ii = (np.repeat(new_list,  N),  np.tile(new_list,  N))
-    jj = (np.repeat(node_list, N),  np.tile(node_list, N))
+    jj = (np.repeat(node_iter, N),  np.tile(node_iter, N))
 
     # Copy edge values
     new_g.adjacency[ii] = g.adjacency[jj]
 
     # Copy vertex properties
     for prop in g.v.keys():
-        new_g.v[prop][:] = g.v[prop][node_list]
+        new_g.v[prop][:] = g.v[prop][node_iter]
 
     # Copy edge properties
     for prop in g.e.keys():
@@ -85,14 +85,14 @@ def permute(g, perm):
 
     Inputs:
         g (TinyGraph): Original TinyGraph to permute.
-        perm (dict or list): A mapping from old vertices to new vertices, such that
+        perm (dict/list/iterable): A mapping from old vertices to new vertices, such that
             perm[old_vertex] = new_vertex.
 
     Outputs:
         new_g (TinyGraph): A new TinyGraph instance with each vertex, and its
             corresponding vertex and edge properties, permuted.
     """
-    # Internally use a list
+    # Internally uses a list
     perm = [perm[i] for i in range(len(perm))]
 
     if  len(perm) != g.node_N \
@@ -112,15 +112,14 @@ def subgraph(g, nodes):
 
     Inputs:
         g (TinyGraph): Original TinyGraph
-        nodes (list or set): list of indices of nodes to take as the nodes of the subgraph
+        nodes (iterable): list(/iterable) of indices of nodes to take
+            as the nodes of the subgraph
 
     Output:
-        sg (TinyGraph): subgraph
+        sg (TinyGraph): induced subgraph
     """
-    if isinstance(nodes, set):
-        nodes = sorted(list(nodes))
-    elif not isinstance(nodes, list):
-        nodes = list(nodes)
+    # Internally uses a list
+    nodes = list(nodes)
 
     if  np.any(np.array(nodes) > g.node_N) \
         or np.any(np.array(nodes) < 0):
