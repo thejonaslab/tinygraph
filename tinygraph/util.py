@@ -37,12 +37,13 @@ def subgraph_relabel(g, node_iter):
     """
     Helper function to perform the work of permute and subgraph.
     Formally, it returns the subgraph of g induced by node_iter (as the set of vertices)
+    Maintains the ordering of node_iter in constructing the new subgraph.
 
     Inputs:
         g (TinyGraph): Original Tinygraph
 
         node_iter (iterable): list of indices of nodes to take as the nodes of the subgraph
-            Contrary to permute(...), here we expect node_iter[new_vertex] = old_vertex
+            Contrary to permute(), here we expect node_iter[new_vertex] = old_vertex
             in order to support dropping (and possibly duplicating) old vertices
 
     Outputs:
@@ -143,7 +144,7 @@ def merge(g1, g2):
 
     Output:
         new_g (TinyGraph): result of the merge
-            note: completely detached from any data living within g1 or g2
+            note: data is detached from any data living within g1 or g2
     """
     # Check for type matching
     if g1.adjacency.dtype != g2.adjacency.dtype:
