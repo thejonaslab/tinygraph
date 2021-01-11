@@ -258,9 +258,19 @@ def test_sequence_adjacency():
     g[range(1), range(2, 3)] = 13
     assert g.adjacency[0, 2] == 13
 
-    # zero-out everything
+    # Zero-out everything
     g[[0, 1, 2], [1, 2, 0]] = 0
     assert np.all(g.adjacency == 0)
+
+    # Ensure tuples work
+    g[(0,), (1,)] = 1
+    assert g.adjacency[1, 0] == 1
+    g[(0, 1), (1, 2)] = 2
+    assert g.adjacency[1, 0] == 2
+    assert g.adjacency[2, 1] == 2
+    g[(0, 1), (1, 2)] = (3, 5)
+    assert g.adjacency[1, 0] == 3
+    assert g.adjacency[2, 1] == 5
 
 def test_sequence_adjacency_errors():
     """
@@ -307,8 +317,9 @@ def test_sequence_eprop():
     assert np.array_equal(g.e_p['edgecolor'], g.e_p['edgecolor'].T)
 
     # Edge deletion results in property deletion
-    g[0, 1] = 0
+    g[[0, 1], [1, 2]] = (0, 1)
     assert g.e_p['edgecolor'][1, 0] == 0
+    assert g.e_p['edgecolor'][1, 2] == 2
 
 def test_sequence_eprop_errors():
     """

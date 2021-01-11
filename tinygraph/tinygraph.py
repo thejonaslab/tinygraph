@@ -343,7 +343,7 @@ class TinyGraph:
         # Update the node count
         self.__node_N -= 1
 
-    def __setitem__(self, key, newValue):
+    def __setitem__(self, key, new_value):
         """
         Create an edge or change the weight of an existing edge. This operation
         is fast. Edges are undirected. If an existing edge is set to its zero
@@ -354,7 +354,7 @@ class TinyGraph:
                Also accepts sequences (iterable) in place of ints, numpy-style
                (usage: ([s1, s2, ...], [t1, t2, ...]) to modify edges (s1, t1), (s2, t2), ...)
             value (dtype): Value to set edge property to.
-            newValue (adj_type): Weight of edge.
+            new_value (adj_type): Weight of edge.
 
         Outputs:
             None - modifications are made in place.
@@ -364,6 +364,7 @@ class TinyGraph:
         elif len(key) != 2:
             raise KeyError("Expecting exactly two endpoints.")
         e1, e2 = key
+        lenv = getattr(new_value, '__len__', lambda: 1)()
         len1 = getattr(e1, '__len__', lambda: 1)()
         len2 = getattr(e2, '__len__', lambda: 1)()
 
@@ -385,17 +386,17 @@ class TinyGraph:
             for i in range(len1):
                 e1[i], e2[i] = reorder(e1[i], e2[i])
 
-        self.adjacency[e1, e2] = newValue
-        self.adjacency[e2, e1] = newValue
+        self.adjacency[e1, e2] = new_value
+        self.adjacency[e2, e1] = new_value
 
         # Zero-out properties when edges are deleted
-        if len1 == 1:
-            if newValue == default_zero(self.adjacency.dtype):
+        if lenv == 1:
+            if new_value == default_zero(self.adjacency.dtype):
                 for k, prop in self.e_p.items():
                     self.e_p[k][e1, e2] = default_zero(prop.dtype)
                     self.e_p[k][e2, e1] = default_zero(prop.dtype)
         else:
-            del_edges = newValue == default_zero(self.adjacency.dtype)
+            del_edges = np.array(list(new_value)) == default_zero(self.adjacency.dtype)
             d1 = e1[del_edges]
             d2 = e2[del_edges]
             for k, prop in self.e_p.items():
