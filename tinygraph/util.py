@@ -118,8 +118,9 @@ def subgraph(g, nodes):
         sg (TinyGraph): subgraph
     """
     if isinstance(nodes, set):
-        # I think it's probably pretty cheap so I'll leave the sort
         nodes = sorted(list(nodes))
+    elif not isinstance(nodes, list):
+        nodes = list(nodes)
 
     if  np.any(np.array(nodes) > g.node_N) \
         or np.any(np.array(nodes) < 0):
