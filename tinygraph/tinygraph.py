@@ -163,9 +163,9 @@ class TinyGraph:
                 nodes is much slower than adding or removing edges, so setting
                 this value accurately initially can improve efficiency.
             adj_type (numpy type): The type of the edge weights.
-            vert_props (string:numpy type): A map from vertex property names to
+            vp_types (string:numpy type): A map from vertex property names to
                 the types of each property.
-            edge_props (string:numpy type): A map from edge property names to
+            ep_types (string:numpy type): A map from edge property names to
                 the types of each property.
 
         Outputs:

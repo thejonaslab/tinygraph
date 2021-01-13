@@ -1,13 +1,22 @@
-import tinygraph as tg 
-from tinygraph.util import graph_equality, permute
+import tinygraph as tg
+from tinygraph.util import graph_equality #, subgraph_relabel, permute, subgraph
 import numpy as np
 import pytest
+import graph_test_suite
+
+basic_suite = graph_test_suite.create_suite()
+vp_suite = graph_test_suite.create_suite_vert_prop()
+ep_suite = graph_test_suite.create_suite_edge_prop()
+prop_suite = graph_test_suite.create_suite_global_prop()
+
+suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
+
 
 def test_vertices():
     """
     Simple test of getting vertex properties.
     """
-    g = tg.TinyGraph(5, np.int32, vp_types = {'color': np.int32, 
+    g = tg.TinyGraph(5, np.int32, vp_types = {'color': np.int32,
                                                 'elem': np.bool})
     g.v['color'][0] = 3
     g.v['color'][1] = 4
@@ -30,7 +39,7 @@ def test_edges():
     """
     Simple test of getting edge properties.
     """
-    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32, 
+    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32,
                                                 'elem': np.bool})
     g[0,4] = 10
     g[1,0] = 20
@@ -54,13 +63,13 @@ def test_edges():
         assert w == weights[(i,j)]
     for i, j, d in g.edges(edge_props = ['elem']):
         assert len(d) == 1
-        assert d['elem'] == elem[(i,j)] 
+        assert d['elem'] == elem[(i,j)]
 
 def test_remove_edge():
     """
     Simple test of removing edges.
     """
-    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32, 
+    g = tg.TinyGraph(5, np.int32, ep_types = {'color': np.int32,
                                                 'elem': np.bool})
     g[0,4] = 10
     g[1,0] = 20
@@ -83,31 +92,3 @@ def test_remove_edge():
     assert g.e['color'][3,4] == 6
     with pytest.raises(IndexError, match='No such edge.'):
         g.e['color'][4,0]
-
-def test_permute():
-    """
-    Test permuting a graph to be equal to another, or permuting back and forth
-    to stay equal to itself.
-    """
-    g1 = tg.TinyGraph(5, np.int32,
-                      vp_types = {'color' : np.int32},
-                      ep_types = {'color2' : np.int32})
-    g2 = tg.TinyGraph(5, np.int32,
-                      vp_types = {'color' : np.int32},
-                      ep_types = {'color2' : np.int32})
-    g1[0,1] = 5
-    g2[3,4] = 5
-    g1[2,3] = 1
-    g2[1,2] = 1
-    g1.v['color'][0] = 10
-    g2.v['color'][4] = 10
-    g1.e['color2'][2,3] = 4
-    g2.e['color2'][2,1] = 4
-
-    pG11 = permute(g1, [3,4,1,2,0])
-    pG12 = permute(g1, [4,3,1,2,0])
-    pG13 = permute(pG11, [4,2,3,0,1])
-
-    assert not graph_equality(g2, pG11)
-    assert graph_equality(g2, pG12)
-    assert graph_equality(g1, pG13)
