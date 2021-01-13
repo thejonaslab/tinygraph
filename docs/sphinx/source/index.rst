@@ -15,8 +15,8 @@ A small library for small graphs
 
 version |release|.
 
-.. image:: 	https://image.shields.io/circleci/build/:git/:thejonaslab/:tinygraph/:main*?token=abc123def456
-   :target: The Link
+.. image:: 	https://img.shields.io/circleci/build/github/thejonaslab/tinygraph
+   :target: https://app.circleci.com/pipelines/github/thejonaslab/tinygraph
 
 --------
 
