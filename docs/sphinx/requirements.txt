@@ -1,0 +1,4 @@
+numpy
+networkx
+git+git://github.com/thejonaslab/tinygraph
+
