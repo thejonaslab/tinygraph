@@ -1,20 +1,52 @@
+.. meta::
+   :description: A small graph library designed to be fast and easy toe xtend.
+
+.. title:: TinyGraph: a small graph library for small graphs. 
+
 .. TinyGraph documentation master file, created by
    sphinx-quickstart on Tue Jan 12 11:59:45 2021.
    You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+..   contain the root `toctree` directive.
 
-Welcome to TinyGraph's documentation!
-=====================================
+TinyGraph
+============================================
+A small library for small graphs
+
+
+version |release|.
+
+.. image:: 	https://image.shields.io/circleci/build/:git/:thejonaslab/:tinygraph/:main*?token=abc123def456
+   :target: The Link
+
+--------
+
+TinyGraph is a :doc:`open source <license>` Python library for
+*small*, *weighted*, *undirected* graphs with no self-loops. TG
+supports node properties, edge properties, and edge weights by default. Behind the scenes data
+is stored as NumPy_ arrays to make it easy to write fast graph algorithms with Numba_ and Cython_.
+We interoperate closely with other graph libraries, especially NetworkX_,
+to avoid reimplementing the wheel.
+
+TinyGraph is simple to use
+----------------------------
+.. code-block:: python
+                
+      import tinygraph as tg
+
+      node_n = 10 
+      g = tg.TinyGraph(node_n)
+
+      g[3, 4] = 1.0
+      g[5, 8] = 2.0
+
+Node properties and edge properties in TinyGraph have associated NumPy `dtypes`.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. _NumPy: https://numpy.org/
+.. _Cython: https://cython.org/
+.. _Numba: https://numba.pydata.org/
+.. _NetworkX: https://networkx.org/

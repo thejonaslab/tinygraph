@@ -30,7 +30,8 @@ release = '1.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
+extensions = ['sphinx.ext.autodoc'
+
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -53,3 +54,13 @@ html_theme = 'alabaster'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+html_theme_options = {
+    "logo": "logo.png",
+    "github_user": "thejonaslab",
+    "github_repo": "tinygraph",
+    "github_type": "star",
+    "github_banner": "forkme_right_green_007200.png",
+    "show_powered_by": False,
+}
