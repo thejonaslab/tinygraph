@@ -1,5 +1,5 @@
 .. meta::
-   :description: A small graph library designed to be fast and easy toe xtend.
+   :description: A small graph library designed to be fast and easy to extend.
 
 .. title:: TinyGraph: a small graph library for small graphs. 
 
