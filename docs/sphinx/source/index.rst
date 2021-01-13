@@ -33,17 +33,33 @@ TinyGraph is simple to use
                 
       import tinygraph as tg
 
-      node_n = 10 
-      g = tg.TinyGraph(node_n)
+      vertex_n = 10 
+      g = tg.TinyGraph(vertex_n)
 
       g[3, 4] = 1.0
       g[5, 8] = 2.0
 
-Node properties and edge properties in TinyGraph have associated NumPy `dtypes`.
+Vertex properties and edge properties in TinyGraph have associated NumPy `dtypes`. This
+strong typing improves efficiency and serialization/deserialization.
+
+.. code-block:: python
+                
+      vertex_n = 10 
+      g = tg.TinyGraph(vertex_n, vp_types = {'color' : np.int32,
+                                             'is_special' : np.bool})
+
+      g[3, 4] = 1.0
+      g.v['color'] = 10
+      g.v['is_special][5] = False
+
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :hidden:
+
+   quickstart
+   api
+   authors
+   license
 
 
 .. _NumPy: https://numpy.org/

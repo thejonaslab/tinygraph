@@ -8,6 +8,6 @@ Also see :ref:`authors`.
 BSD License
 -----------
 
-.. include:: ../../LICENSE
+.. include:: ../../../LICENSE
 
 

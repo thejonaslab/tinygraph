@@ -50,6 +50,7 @@ exclude_patterns = []
 #
 html_theme = 'alabaster'
 
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -63,4 +64,16 @@ html_theme_options = {
     "github_type": "star",
     "github_banner": "forkme_right_green_007200.png",
     "show_powered_by": False,
+}
+
+
+
+html_sidebars = {
+    "**": [
+        "about.html",
+        #"sidebarintro.html",
+        "navigation.html",
+        "searchbox.html",
+        #"artwork.html",
+    ]
 }
