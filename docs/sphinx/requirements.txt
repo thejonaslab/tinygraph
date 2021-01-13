@@ -1,5 +1,4 @@
 numpy
 networkx
 cython
-git+git://github.com/thejonaslab/tinygraph
 
