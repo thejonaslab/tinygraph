@@ -1,6 +1,7 @@
 import numpy as np
 import tinygraph as tg
 from tinygraph import EdgeProxy
+from copy import deepcopy
 import warnings
 
 def graph_equality(g1, g2):
@@ -33,17 +34,20 @@ def graph_equality(g1, g2):
 
     return True
 
-def subgraph_relabel(g, node_iter):
+def _subgraph_relabel(g, node_iter):
     """
-    Helper function to perform the work of permute and subgraph.
-    Formally, it returns the subgraph of g induced by node_iter (as the set of vertices)
+    Helper function to perform the work of permute and subgraph. Not intended for
+    use by end-users. See instead functions permute and subgraph below.
+
+    This function returns the subgraph of g induced by node_iter (as the set of vertices)
     Maintains the ordering of node_iter in constructing the new subgraph.
 
     Inputs:
         g (TinyGraph): Original Tinygraph
 
-        node_iter (iterable): list of indices of nodes to take as the nodes of the subgraph
-            Contrary to permute(), here we expect node_iter[new_vertex] = old_vertex
+        node_iter (iterable): iterable containing indices of nodes to take as the
+            nodes of the subgraph. Contrary to permute(), here we expect
+                node_iter[new_vertex] = old_vertex
             in order to support dropping (and possibly duplicating) old vertices
 
     Outputs:
@@ -54,7 +58,8 @@ def subgraph_relabel(g, node_iter):
                     {p:val.dtype for p, val in g.v.items()},
                     {p:val.dtype for p, val in g.e.items()})
     # Copy graph props
-    new_g.props = {k:v for k, v in g.props.items()}
+    # new_g.props = {k:v for k, v in g.props.items()}
+    new_g.props = deepcopy(g.props)
 
     if N == 0:
         # Weird things happen if we keep going ;_;
@@ -64,11 +69,11 @@ def subgraph_relabel(g, node_iter):
     # at the expense of ignoring sparsity (moves everything)
     new_list = np.arange(N) # list of the new vertices
     # node_iter is a list of old vertices ordered by destination indices
-    ii = (np.repeat(new_list,  N),  np.tile(new_list,  N))
-    jj = (np.repeat(node_iter, N),  np.tile(node_iter, N))
+    old_indices = (np.repeat(new_list,  N),  np.tile(new_list,  N))
+    new_indices = (np.repeat(node_iter, N),  np.tile(node_iter, N))
 
     # Copy edge values
-    new_g.adjacency[ii] = g.adjacency[jj]
+    new_g.adjacency[old_indices] = g.adjacency[new_indices]
 
     # Copy vertex properties
     for prop in g.v.keys():
@@ -76,7 +81,7 @@ def subgraph_relabel(g, node_iter):
 
     # Copy edge properties
     for prop in g.e.keys():
-        new_g.e_p[prop][ii] = g.e_p[prop][jj]
+        new_g.e_p[prop][old_indices] = g.e_p[prop][new_indices]
 
     return new_g
 
@@ -86,7 +91,7 @@ def permute(g, perm):
 
     Inputs:
         g (TinyGraph): Original TinyGraph to permute.
-        perm (dict/list/iterable): A mapping from old vertices to new vertices, such that
+        perm (iterable): A mapping from old vertices to new vertices, such that
             perm[old_vertex] = new_vertex.
 
     Outputs:
@@ -103,7 +108,7 @@ def permute(g, perm):
     # Flip the order of stuff in perm
     perm_inv = np.argsort(perm)
 
-    return subgraph_relabel(g, perm_inv)
+    return _subgraph_relabel(g, perm_inv)
 
 def subgraph(g, nodes):
     """
@@ -113,7 +118,7 @@ def subgraph(g, nodes):
 
     Inputs:
         g (TinyGraph): Original TinyGraph
-        nodes (iterable): list(/iterable) of indices of nodes to take
+        nodes (iterable): iterable of indices of nodes to take
             as the nodes of the subgraph
 
     Output:
@@ -124,9 +129,9 @@ def subgraph(g, nodes):
 
     if  np.any(np.array(nodes) > g.node_N) \
         or np.any(np.array(nodes) < 0):
-        raise IndexError(f"nodes list/set contains out-of-bounds indices!")
+        raise IndexError(f"nodes iterable contains out-of-bounds indices!")
 
-    return subgraph_relabel(g, nodes)
+    return _subgraph_relabel(g, nodes)
 
 
 def merge(g1, g2):
@@ -148,7 +153,8 @@ def merge(g1, g2):
     """
     # Check for type matching
     if g1.adjacency.dtype != g2.adjacency.dtype:
-        raise TypeError("g1 and g2 do not share adjacency matrix types!")
+        raise TypeError("g1 and g2 do not share adjacency matrix types: "
+                        f"({g1.adjacency.dtype} vs {g2.adjacency.dtype})!")
     adj_type = g1.adjacency.dtype
 
     vp_type1 = {p:val.dtype for p, val in g1.v.items()}
@@ -156,7 +162,8 @@ def merge(g1, g2):
     for k in vp_type1.keys():
         if k in vp_type2.keys():
             if vp_type1[k] != vp_type2[k]:
-                raise TypeError(f"dtype for vertex property {k} does not match!")
+                raise TypeError(f"dtype for vertex property '{k}' does not match: "
+                                f"{vp_type1[k]} vs {vp_type2[k]}")
     vp_types = {**vp_type1, **vp_type2}
 
 
@@ -165,14 +172,19 @@ def merge(g1, g2):
     for k in ep_type1.keys():
         if k in ep_type2.keys():
             if ep_type1[k] != ep_type2[k]:
-                raise TypeError(f"dtype for vertex property {k} does not match!")
+                raise TypeError(f"dtype for edge property '{k}' does not match: "
+                                f"{ep_type1[k]} vs {ep_type2[k]}")
     ep_types = {**ep_type1, **ep_type2}
 
     # Warnings after errors
     if set(g1.v.keys()) != set(g2.v.keys()):
-        warnings.warn("Graph merge: vertex properties don't all match!")
+        warnings.warn(f"util.merge: vertex properties don't all match but will be merged "
+                      f"automatically: {set(g1.v.keys())} and {set(g2.v.keys())} "
+                      f"will result in {set(g1.v.keys()).union(set(g2.v.keys()))}")
     if set(g1.e.keys()) != set(g2.e.keys()):
-        warnings.warn("Graph merge: edge properties don't all match!")
+        warnings.warn(f"util.merge: edge properties don't all match but will be merged "
+                      f"automatically: {set(g1.e.keys())} and {set(g2.e.keys())} "
+                      f"will result in {set(g1.e.keys()).union(set(g2.e.keys()))}")
 
     # Initialize the new merged graph
     N = g1.node_N + g2.node_N
