@@ -49,7 +49,7 @@ strong typing improves efficiency and serialization/deserialization.
                                              'is_special' : np.bool})
 
       g[3, 4] = 1.0
-      g.v['color'] = 10
+      g.v['color'][:] = 10
       g.v['is_special'][5] = False
 
 

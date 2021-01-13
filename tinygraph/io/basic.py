@@ -8,7 +8,7 @@ import json
 # For slightly cleaner type inference
 import numbers
 
-def from_nx(ng, adj_type=np.int32,
+def from_nx(ng, adj_type=np.float32,
             weight_prop=None,
             name_prop=None,
             vp_types={}, ep_types={},

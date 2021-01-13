@@ -154,7 +154,7 @@ class TinyGraph:
     numpy arrays to store the properties at each node or edge.
     """
 
-    def __init__(self, node_N, adj_type=np.int32, vp_types={}, ep_types={}):
+    def __init__(self, node_N, adj_type=np.float32, vp_types={}, ep_types={}):
         """
         Initalize a new TinyGraph instance.
 
