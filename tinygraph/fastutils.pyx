@@ -168,6 +168,11 @@ cpdef get_shortest_paths(tg, weighted):
 
     Inputs:
         tg (TinyGraph): The graph to find the shortest paths in.
+        weighted (bool): Whether to consider the weights of the edges, or to 
+            consider only the lengths of the path. If weighted is true, the 
+            distance of a path is calculated by the sum of the weights on the 
+            path. If false, the distance is calculated by the number of nodes on
+            the path.
 
     Outputs:
         distances ([[int]]): A list of the distance to each node. The lists are
@@ -176,11 +181,6 @@ cpdef get_shortest_paths(tg, weighted):
             node 0 to node 3 shortest path from 0 to 3; distances[2][2] = 0 is 
             distance from node 2 to itself). If no path exists between the 
             nodes, the result is None.
-        weighted (bool): Whether to consider the weights of the edges, or to 
-            consider only the lengths of the path. If weighted is true, the 
-            distance of a path is calculated by the sum of the weights on the 
-            path. If false, the distance is calculated by the number of nodes on
-            the path.
     """
     if not weighted:
         distances = np.ones_like(tg.adjacency, dtype = np.float64)
