@@ -9,6 +9,18 @@ import numpy as np
 from tinygraph.fastutils import get_connected_components
 from tinygraph.fastutils import get_shortest_paths
 
+def is_connected(tg):
+    """
+    Determines if a graph is fully connected.
+
+    Inputs:
+        tg (TinyGraph): graph to check for connectedness.
+
+    Outputs:
+        connected (bool): whether the graph is fully connected.
+    """
+    return len(get_connected_components(tg)) == 1
+
 def get_min_cycles(tg):
     """
     Determines if a vertex in a graph is part of a cycle, and if so, returns the 

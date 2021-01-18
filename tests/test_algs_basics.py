@@ -13,6 +13,7 @@ def test_cc_empty():
     g = tg.TinyGraph(0)
 
     assert algs.get_connected_components(g) == []
+    assert algs.is_connected(g) == False
 
 def test_cc_one_comp():
     """
@@ -25,6 +26,7 @@ def test_cc_one_comp():
     g[3,4] = 1
 
     assert algs.get_connected_components(g) == [set(range(5)),]
+    assert algs.is_connected(g) == True
 
 def test_cc_multi_comp():
     """
@@ -38,6 +40,7 @@ def test_cc_multi_comp():
     g[4,5] = 1
 
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
+    assert algs.is_connected(g) == False
 
 basic_suite = graph_test_suite.create_suite()
 vp_suite = graph_test_suite.create_suite_vert_prop()
