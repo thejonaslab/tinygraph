@@ -437,22 +437,41 @@ class TinyGraph:
 
     def __repr__(self):
         """
-        Representation of graph for debugging.
+        Printable representation of a graph.
 
         Inputs:
             None
 
         Outputs:
-            rep (str): TinyGraph Representation.
+            rep (str): TinyGraph Representation. 
         """
-        rep = "Vertices:\n"
+
+        rep = "TinyGraph dtype=" + str(self.adjacency.dtype) + ", vert_N=" + \
+            str(self.vert_N) + ", edge_N=" + str(self.edge_N) + "\n" 
+        return rep
+    
+    def print_full_graph(self):
+        """
+        Full representation of a graph. Includes all global, vertex and edge
+        properties.
+
+        Inputs:
+            None
+
+        Outputs:
+            None - prints representation.
+        """
+        rep = "Global Properties:\n"
+        for name, prop in self.props.items():
+            rep += str(name) + ": " + str(prop) + "\n"
+        rep += "\nVertices:\n"
         for i, props in self.vertices(vert_props = self.v.keys()):
             rep += str(i) + ": " + str(props) + "\n"
         rep += "\nEdges:\n"
         for i,j,w,props in self.edges(weight = True,edge_props = self.e.keys()): 
             rep += "(" + str(i) + ", " + str(j) + "): Weight - " + str(w) +\
                 ", Props - " + str(props) + "\n"
-        return rep[:-1] # strip last newline 
+        print(rep[:-1]) # strip last newline 
 
     def get_neighbors(self, n):
         """
