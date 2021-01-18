@@ -47,7 +47,7 @@ def from_nx(ng, adj_type=np.float32,
     Outputs:
         tg (TinyGraph): TinyGraph instance corresponding to networkx graph.
     """
-    # First create an instance with the right node size
+    # First create an instance with the right vertex size
     g = tg.TinyGraph(ng.order(), \
                      adj_type=adj_type, \
                      vp_types=vp_types, \
@@ -161,13 +161,13 @@ def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
     # Make the new network
     ng = networkx.Graph()
 
-    # Fetch nodes' names
+    # Fetch vertices' names
     if name_prop is None:
         # Default to indices
-        node_names = list(range(g.node_N))
+        node_names = list(range(g.vert_N))
     elif name_prop in g.v.keys():
         # Take the passed vertex property if avaliable
-        node_names = [g.v[name_prop][i] for i in range(g.node_N)]
+        node_names = [g.v[name_prop][i] for i in range(g.vert_N)]
     else:
         raise KeyError(f"Error: to_nx could not find name_prop "
                        f"({name_prop}) for the passed tinygraph")
@@ -185,7 +185,7 @@ def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
 
     # Drop node names and vertex properties
     ng.add_nodes_from(node_names)
-    for i in range(g.node_N):
+    for i in range(g.vert_N):
         iname = node_names[i]
 
         for key in vp_subset:
@@ -197,9 +197,9 @@ def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
 
     # Fetch edges
     # Loop is such that i<j
-    for i in range(g.node_N):
+    for i in range(g.vert_N):
         iname = node_names[i]
-        for j in range(i+1, g.node_N):
+        for j in range(i+1, g.vert_N):
             jname = node_names[j]
             edge_val = g[i, j]
 

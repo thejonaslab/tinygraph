@@ -60,8 +60,8 @@ def add_random_ep(g, dt, rng=None):
     name = "prop" + str(rng.randint(1000000))
     g.add_vert_prop(name, dt)
 
-    for i in range(g.node_N):
-        for j in range(i +1, g.node_N):
+    for i in range(g.vert_N):
+        for j in range(i +1, g.vert_N):
             if g.adjacency[i, j] > 0:
                 if dt == np.bool:
                     g.e[name][i, j] = rng.choice([False, True])
@@ -84,7 +84,7 @@ def add_random_vp(g, dt, rng=None):
     name = "prop" + str(rng.randint(1000000))
     g.add_vert_prop(name, dt)
 
-    for i in range(g.node_N):
+    for i in range(g.vert_N):
         if dt == np.bool:
             g.v[name][i] = rng.choice([False, True])
 

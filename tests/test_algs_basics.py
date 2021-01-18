@@ -63,8 +63,8 @@ def test_random(test_name):
         for cc in nx_cc:
             assert cc in tg_cc
 
-        for i in range(g.node_N):
-            for j in range(g.node_N):
+        for i in range(g.vert_N):
+            for j in range(g.vert_N):
                 if not j in nx_sp[i]:
                     assert tg_sp[i][j] == np.inf
                 else:
@@ -72,7 +72,7 @@ def test_random(test_name):
 
 def test_cycles_empty():
     """
-    An empty graph has no nodes to be in cycles.
+    An empty graph has no vertices to be in cycles.
     """
     g = tg.TinyGraph(0)
 

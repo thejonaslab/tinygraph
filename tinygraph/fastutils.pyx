@@ -13,8 +13,8 @@ cimport cython
 @cython.wraparound(False)   # Deactivate negative indexing.
 cdef _get_all_neighbors(np.uint8_t[:,:] adj, np.int32_t[:, :] neighbors_out):  
     """
-    For a TG with N nodes returns a NxN numpy array of
-    neighbors, where the ith row lists the node IDs of the 
+    For a TG with N vertices returns a NxN numpy array of
+    neighbors, where the ith row lists the vertex IDs of the 
     neighbors (and -1 otherwise)
     """
     
@@ -31,12 +31,12 @@ cdef _get_all_neighbors(np.uint8_t[:,:] adj, np.int32_t[:, :] neighbors_out):
 
 def get_all_neighbors(tg):  
     """
-    For a TG with N nodes returns a NxN numpy array of
-    neighbors, where the ith row lists the node IDs of the 
+    For a TG with N vertices returns a NxN numpy array of
+    neighbors, where the ith row lists the vertex IDs of the 
     neighbors (and -1 otherwise)
     """
 
-    neighbors_out = np.ones((tg.node_N, tg.node_N), dtype=np.int32) * -1
+    neighbors_out = np.ones((tg.vert_N, tg.vert_N), dtype=np.int32) * -1
     
     
     _get_all_neighbors(tg.adjacency != tinygraph.default_zero(tg.adjacency.dtype),
@@ -56,7 +56,7 @@ cdef _get_connected_components(np.uint8_t[:, :] adj, np.int32_t[:] components_ou
     neighbors[:] = -1
     _get_all_neighbors(adj, neighbors)
 
-    # Track which nodes have not been visited yet, and keep a set with all of 
+    # Track which vertices have not been visited yet, and keep a set with all of 
     # the connected components.    
     cdef np.int32_t[:] unseen = np.ones(N, dtype=np.int32)
     cdef np.int32_t[:] comp = np.zeros(N, dtype=np.int32)
@@ -69,7 +69,7 @@ cdef _get_connected_components(np.uint8_t[:, :] adj, np.int32_t[:] components_ou
     cdef int current_comp_num = 0
     
     while unseen_num > 0:
-        # While there are still unvisited nodes, start from an unvisited node
+        # While there are still unvisited vertices, start from an unvisited vertex
         # and explore its connected component.
         comp[:] = 0
         bfs[:] = 0
@@ -85,7 +85,7 @@ cdef _get_connected_components(np.uint8_t[:, :] adj, np.int32_t[:] components_ou
         bfs_num += 1
         
         while bfs_num > 0:
-            # Explore a new node in the connected component, adding it to the 
+            # Explore a new vertex in the connected component, adding it to the 
             # connected component set and adding its neighbors to the set to 
             # explore next.
             
@@ -123,13 +123,13 @@ cpdef get_connected_components(tg):
 
     Outputs:
         cc ([{int}]): A list of connected components of tg, where each connected
-            component is given by a set of the nodes in the component.
+            component is given by a set of the vertices in the component.
     """
 
-    if tg.node_N == 0:
+    if tg.vert_N == 0:
         return []
     
-    comp_array = np.ones(tg.node_N, dtype=np.int32) * -1
+    comp_array = np.ones(tg.vert_N, dtype=np.int32) * -1
     _get_connected_components(tg.adjacency != tinygraph.default_zero(tg.adjacency.dtype),
                               comp_array)
 
@@ -163,7 +163,7 @@ cpdef _floyd_warshall(d, n):
 
 cpdef get_shortest_paths(tg, weighted):
     """
-    Get the distance from each node to each other node on the shortest path. 
+    Get the distance from each vertex to each other vertex on the shortest path. 
     Uses Floyd-Warshall to calculate the distances of the shortest paths.
 
     Inputs:
@@ -171,29 +171,29 @@ cpdef get_shortest_paths(tg, weighted):
         weighted (bool): Whether to consider the weights of the edges, or to 
             consider only the lengths of the path. If weighted is true, the 
             distance of a path is calculated by the sum of the weights on the 
-            path. If false, the distance is calculated by the number of nodes on
+            path. If false, the distance is calculated by the number of vertices on
             the path.
 
     Outputs:
-        distances ([[int]]): A list of the distance to each node. The lists are
-            ordered by node number, so distances[0] is a list of the distances 
-            from node 0 to the other nodes (e.g. distances[0][3] = distance from
-            node 0 to node 3 shortest path from 0 to 3; distances[2][2] = 0 is 
-            distance from node 2 to itself). If no path exists between the 
-            nodes, the result is None.
+        distances ([[int]]): A list of the distance to each vertex. The lists are
+            ordered by vertex number, so distances[0] is a list of the distances 
+            from vertex 0 to the other vertices (e.g. distances[0][3] = distance from
+            vertex 0 to vertex 3 shortest path from 0 to 3; distances[2][2] = 0 is 
+            distance from vertex 2 to itself). If no path exists between the 
+            vertices, the result is None.
     """
     if not weighted:
         distances = np.ones_like(tg.adjacency, dtype = np.float64)
         distances[tg.adjacency == tinygraph.default_zero(tg.adjacency.dtype)] = np.inf
-        distances[np.eye(tg.node_N) == 1] = 0
+        distances[np.eye(tg.vert_N) == 1] = 0
     elif not np.issubdtype(tg.adjacency.dtype, np.number):
         raise TypeError("Graph weights are not numbers.")
     else:
         distances = np.array(tg.adjacency,dtype=np.float64,copy=True)
         distances[tg.adjacency == 0] = np.inf
-        distances[np.eye(tg.node_N) == 1] = 0
-    distances = np.array(floyd_warshall(distances, tg.node_N))
-    for i in range(tg.node_N):
+        distances[np.eye(tg.vert_N) == 1] = 0
+    distances = np.array(floyd_warshall(distances, tg.vert_N))
+    for i in range(tg.vert_N):
         if distances[i][i] < 0:
             raise Exception("Graph has a negative cycle.")
     return distances

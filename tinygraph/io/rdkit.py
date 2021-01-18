@@ -100,7 +100,7 @@ def to_rdkit_mol(g, atomicno_prop='atomicno',
     # check atomicnos are valid
 
 
-    ATOM_N = g.node_N
+    ATOM_N = g.vert_N
     m = Chem.RWMol()
     for i in range(ATOM_N):
         atom = Chem.Atom(int(g.v[atomicno_prop][i]))

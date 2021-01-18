@@ -127,7 +127,7 @@ def test_permutation_inversion_suite(test_name):
 
     for g in suite[test_name]:
         # Get order and a random permutation
-        N = g.node_N
+        N = g.vert_N
         perm     = rng.permutation(N)
         inv_perm = np.argsort(perm)
 
@@ -159,66 +159,66 @@ def test_subgraph_empty():
     g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
     sg = subgraph(g, [])
 
-    assert sg.node_N == 0
+    assert sg.vert_N == 0
     assert not graph_equality(g, sg)
 
 def test_subgraph_list():
-    """Check functionality for a list of nodes"""
+    """Check functionality for a list of vertices"""
     rng = np.random.RandomState(0)
-    nodes = rng.choice(5, 3, replace=False)
+    vertices = rng.choice(5, 3, replace=False)
 
     g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
     g.add_vert_prop('name', np.dtype('<U20'))
     g.v['name'][:] = ['a', 'b', 'c', 'd', 'e']
 
-    sg = subgraph(g, nodes)
+    sg = subgraph(g, vertices)
 
-    assert sg.node_N == 3
-    assert np.array_equal(sg.v['name'], np.array(g.v['name'])[nodes])
+    assert sg.vert_N == 3
+    assert np.array_equal(sg.v['name'], np.array(g.v['name'])[vertices])
 
     for n1, n2 in sg.edges():
-        assert sg[n1, n2] == g[nodes[n1], nodes[n2]]
+        assert sg[n1, n2] == g[vertices[n1], vertices[n2]]
 
 def test_subgraph_set():
-    """Check functionality for a set of nodes (as in vertex subset)"""
+    """Check functionality for a set of vertices (as in vertex subset)"""
     rng = np.random.RandomState(0)
-    nodes = set(rng.choice(5, 3, replace=False))
+    vertices = set(rng.choice(5, 3, replace=False))
 
     g = graph_test_suite.gen_random(5, np.bool, [True], 0.5)
     g.add_vert_prop('name', np.dtype('<U20'))
     g.v['name'][:] = ['a', 'b', 'c', 'd', 'e']
 
-    sg = subgraph(g, nodes)
+    sg = subgraph(g, vertices)
 
-    node_list = sorted(list(nodes))
-    assert np.array_equal(sg.v['name'], np.array(g.v['name'])[node_list])
+    vert_list = sorted(list(vertices))
+    assert np.array_equal(sg.v['name'], np.array(g.v['name'])[vert_list])
 
 def test_subgraph_error():
     """Check error-handling for out-of-bounds stuff"""
-    nodes = set([0, 1, 12])
+    vertices = set([0, 1, 12])
     g = tg.TinyGraph(5)
     with pytest.raises(IndexError):
-        sg = subgraph(g, nodes)
+        sg = subgraph(g, vertices)
 
-    nodes2 = set([-1, 0, 3, 4])
+    vertices2 = set([-1, 0, 3, 4])
     with pytest.raises(IndexError):
-        sg2 = subgraph(g, nodes2)
+        sg2 = subgraph(g, vertices2)
 
 def test_subgraph_duplicate():
-    """Check that we can duplicate nodes if we like"""
-    nodes = [0, 0, 1]
+    """Check that we can duplicate vertices if we like"""
+    vertices = [0, 0, 1]
     g = tg.TinyGraph(2, vp_types={'name':np.dtype('<U10')})
     g.v['name'][:] = ['a', 'b']
     g[0, 1] = 1
 
-    sg = subgraph(g, nodes)
+    sg = subgraph(g, vertices)
 
     adj = np.zeros((3, 3), dtype=np.int32)
     adj[0, 2] = 1
     adj[2, 0] = 1
     adj[1, 2] = 1
     adj[2, 1] = 1
-    assert sg.node_N == 3
+    assert sg.vert_N == 3
     assert np.array_equal(adj, sg.adjacency)
     assert np.array_equal(['a', 'a', 'b'], sg.v['name'])
 
@@ -230,12 +230,12 @@ def test_subgraph_suite(test_name):
 
     for g in suite[test_name]:
         # Get order and a random permutation
-        N = g.node_N
+        N = g.vert_N
         SN = rng.randint(N)
-        node_list = rng.choice(N, SN, replace=False)
-        nodes = sorted(node_list)
+        vert_list = rng.choice(N, SN, replace=False)
+        vertices = sorted(vert_list)
 
-        h = subgraph(g, nodes)
+        h = subgraph(g, vertices)
 
         # Check global properties
         assert h.props == g.props
@@ -243,24 +243,24 @@ def test_subgraph_suite(test_name):
         # Check vertex properties
         for n in h.vertices():
             for k in g.v.keys():
-                assert h.v[k][n] == g.v[k][nodes[n]]
+                assert h.v[k][n] == g.v[k][vertices[n]]
 
         # Check edge properties and weights
         for n1, n2 in h.edges():
-            assert h[n1, n2] == g[nodes[n1], nodes[n2]]
+            assert h[n1, n2] == g[vertices[n1], vertices[n2]]
             for k in g.e.keys():
-                assert h.e[k][n1, n2] == g.e[k][nodes[n1], nodes[n2]]
+                assert h.e[k][n1, n2] == g.e[k][vertices[n1], vertices[n2]]
 
-        # Check behavior with nodes
+        # Check behavior with vertices
         g.add_vert_prop('old_vertex_id', np.int)
-        g.v['old_vertex_id'][:] = np.arange(g.node_N)
+        g.v['old_vertex_id'][:] = np.arange(g.vert_N)
 
-        # Unclear what ordering will result from iterating over nodeset
+        # Unclear what ordering will result from iterating over vertset
         # so just check that we can reconstruct the original
-        nodeset = set(node_list)
-        h_set = subgraph(g, nodeset)
+        vertset = set(vert_list)
+        h_set = subgraph(g, vertset)
 
-        # Attempt to reconstruct the subgraph `h` made with `nodes`.
+        # Attempt to reconstruct the subgraph `h` made with `vertices`.
         # Note that h_set.v['old_vertex_id'] has indices that lie outside
         # the normal range. So, we perform an argsort and a reverse argsort
         # which brings all the indices in range and preserves the order.
@@ -286,7 +286,7 @@ def test_merge_simple():
     result[2, 3] = 3
     result[3, 2] = 3
 
-    assert gg.node_N == 4
+    assert gg.vert_N == 4
     assert np.array_equal(gg.adjacency, result)
 
 def test_merge_empty():
@@ -297,8 +297,8 @@ def test_merge_empty():
     gg  = merge(g1, g2)
     gg2 = merge(g2, g1)
 
-    assert 0 == gg.node_N
-    assert 0 == gg2.node_N
+    assert 0 == gg.vert_N
+    assert 0 == gg2.vert_N
 
 def test_merge_identity():
     """Merge with an empty graph"""
@@ -363,7 +363,7 @@ def test_merge_suite(test_name):
         gg = merge(g1, g2)
 
         # Preliminary
-        assert gg.node_N == g1.node_N + g2.node_N
+        assert gg.vert_N == g1.vert_N + g2.vert_N
 
         # Just check for transfer of global property names
         for key in g1.props.keys():
@@ -374,10 +374,10 @@ def test_merge_suite(test_name):
         # Check vertex properties in bulk
         for key in g1.v.keys():
             assert key in gg.v.keys()
-            assert np.array_equal(gg.v[key][:g1.node_N], g1.v[key])
+            assert np.array_equal(gg.v[key][:g1.vert_N], g1.v[key])
         for key in g2.v.keys():
             assert key in gg.v.keys()
-            assert np.array_equal(gg.v[key][g1.node_N:], g2.v[key])
+            assert np.array_equal(gg.v[key][g1.vert_N:], g2.v[key])
 
         # Check edges through the EdgeProxy instead of e_p like in the function
         for key in g1.e.keys():
@@ -388,8 +388,8 @@ def test_merge_suite(test_name):
         for key in g2.e.keys():
             assert key in gg.e.keys()
             for n1, n2 in g2.edges():
-                assert g2.e[key][n1, n2] == gg.e[key][g.node_N+n1, g.node_N+n2]
+                assert g2.e[key][n1, n2] == gg.e[key][g.vert_N+n1, g.vert_N+n2]
 
         # Adjacency
-        assert np.array_equal(g1.adjacency, gg.adjacency[:g1.node_N, :g1.node_N])
-        assert np.array_equal(g2.adjacency, gg.adjacency[g1.node_N:, g1.node_N:])
+        assert np.array_equal(g1.adjacency, gg.adjacency[:g1.vert_N, :g1.vert_N])
+        assert np.array_equal(g2.adjacency, gg.adjacency[g1.vert_N:, g1.vert_N:])
