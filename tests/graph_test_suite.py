@@ -1,11 +1,13 @@
 """
-Test suite of example graphs. This only includes very basic
-cases and pathological cases; for a richer repertoire
-of graphs use networkx and the io.from_nx functions. 
+Test suite of example graphs. This includes some very basic
+cases and pathological cases; a richer repertoire
+of graphs is included through networkx and the io.from_nx function. 
 
 """
 import numpy as np
 import tinygraph as tg
+import networkx as nx
+from tinygraph.io import from_nx
 
 def gen_empty(N, dtype):
     """
@@ -32,6 +34,14 @@ def gen_linear(N, dtype):
         e[i, i+1] = tg.default_one(dtype)
     return e
 
+def gen_ladder(N, dtype):
+    """
+    Use networkx to generate a ladder graph (two paths with pairs connected) 
+    with N vertices on each side of the ladder.
+    """
+    ng = nx.generators.classic.ladder_graph(N)
+    return from_nx(ng, adj_type=dtype)
+
 def gen_random(N, dtype, edge_weights, prob_edge):
     """
     Generate a random graph of the given dtype with 
@@ -46,8 +56,6 @@ def gen_random(N, dtype, edge_weights, prob_edge):
             if np.random.rand() < prob_edge:
                 g[i, j] = np.random.choice(edge_weights)
     return g
-
-
 
 def add_random_ep(g, dt, rng=None):
     """
@@ -70,8 +78,7 @@ def add_random_ep(g, dt, rng=None):
                     g.e[name][i, j] = rng.randint(1, 100)
                     
                 elif dt == np.float64:
-                    g.e[name][i, j] = rng.rand()
-                    
+                    g.e[name][i, j] = rng.rand()                   
                     
 def add_random_vp(g, dt, rng=None):
     """
@@ -119,17 +126,29 @@ def create_suite(seed=0, rng=None):
             name = f"linear_{basename}"
             out_graphs[name] = [gen_linear(N, dtype)]
 
+            # name = f"ladder_{basename}"
+            # out_graphs[name] = [gen_ladder(N, dtype)]
 
     SAMPLE_N = 5
     for N in [4, 7, 16, 32, 100]:
         for prob_edge in [0.1, 0.5, 0.9]:
+            
             dtype = np.bool
             edge_weights = [True]
-            
             
             name = f"random_{prob_edge:.1f}_{str(dtype)[3:]}_{N}"
             out_graphs[name] = [gen_random(N, dtype, edge_weights, prob_edge) \
                                 for _ in range(SAMPLE_N)]
+            
+            # name = f"random_lobster_{prob_edge:.1f}_{str(dtype)[3:]}_{N}"
+            # out_graphs[name] = []
+            # for i in range(SAMPLE_N):
+            #     ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
+            #                 prob_edge,np.random.RandomState())
+            #     t = from_nx(ng,adj_type=dtype)
+            #     out_graphs[name].append(t)
+
+                
 
             dtype = np.int32
             name = f"random_{prob_edge:.1f}_{str(dtype)[3:]}_{N}"
@@ -139,8 +158,20 @@ def create_suite(seed=0, rng=None):
                                                  size=rng.randint(1, N//2))
                 
                 out_graphs[name].append(gen_random(N, dtype, edge_weights, prob_edge))
+            
+            # name = f"random_lobster_{prob_edge:.1f}_{str(dtype)[3:]}_{N}"
+            # out_graphs[name] = []
+            # for i in range(SAMPLE_N):
+            #     edge_weights = rng.randint(1, rng.randint(2, max(N//2, 3)),
+            #                                      size=rng.randint(1, N//2))
+            #     ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
+            #                 prob_edge,np.random.RandomState())
+            #     t = from_nx(ng,adj_type=dtype)
+            #     for e1, e2 in t.edges():
+            #         t[e1, e2] = np.random.choice(edge_weights)
+            #     out_graphs[name].append(t)
 
-                
+
             dtype = np.float64
             name = f"random_{prob_edge:.1f}_{str(dtype)[3:]}_{N}"
             out_graphs[name] = []
@@ -148,8 +179,19 @@ def create_suite(seed=0, rng=None):
                 edge_weights = rng.rand(rng.randint(1, N//2)) + 0.5
                 
                 out_graphs[name].append(gen_random(N, dtype, edge_weights, prob_edge))
+            
+            # name = f"random_lobster_{prob_edge:.1f}_{str(dtype)[3:]}_{N}"
+            # out_graphs[name] = []
+            # for i in range(SAMPLE_N):
+            #     edge_weights = rng.rand(rng.randint(1, N//2)) + 0.5
+            #     ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
+            #                 prob_edge,np.random.RandomState())
+            #     t = from_nx(ng,adj_type=dtype)
+            #     for e1, e2 in t.edges():
+            #         t[e1, e2] = np.random.choice(edge_weights)
+            #     out_graphs[name].append(t)
 
-                
+
     return out_graphs
         
             
