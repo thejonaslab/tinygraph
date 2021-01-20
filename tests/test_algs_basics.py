@@ -6,6 +6,15 @@ import graph_test_suite
 import networkx as nx
 import numpy as np
 
+basic_suite = graph_test_suite.create_suite()
+vp_suite = graph_test_suite.create_suite_vert_prop()
+ep_suite = graph_test_suite.create_suite_edge_prop()
+gl_suite = graph_test_suite.create_suite_global_prop()
+
+suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite}
+
+nx_suite = graph_test_suite.create_netx_suite()
+
 def test_cc_empty():
     """
     Empty graph has no connected components.
@@ -42,12 +51,30 @@ def test_cc_multi_comp():
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
     assert algs.is_connected(g) == False
 
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
+@pytest.mark.slow
+@pytest.mark.parametrize("test_name", [k for k in nx_suite.keys()])
+def test_netx_suite(test_name):
+    """
+    Test networkx suite of graphs against networkx algorithms.
+    """
+    for g in nx_suite[test_name]:
 
-suite = {**basic_suite, **vp_suite, **ep_suite}
+        tg_cc = algs.get_connected_components(g)
+        tg_sp = algs.get_shortest_paths(g,False)
 
+        netx = to_nx(g, weight_prop = "weight")
+        nx_cc = nx.connected_components(netx)
+        nx_sp = dict(nx.all_pairs_shortest_path_length(netx))
+        
+        for cc in nx_cc:
+            assert cc in tg_cc
+
+        for i in range(g.vert_N):
+            for j in range(g.vert_N):
+                if not j in nx_sp[i]:
+                    assert tg_sp[i][j] == np.inf
+                else:
+                    assert tg_sp[i][j] == nx_sp[i][j]
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_random(test_name):
