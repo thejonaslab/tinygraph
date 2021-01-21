@@ -9,27 +9,27 @@ import tinygraph as tg
 import networkx as nx
 from tinygraph.io import from_nx
 
-def gen_empty(N, dtype):
+def gen_empty(N, dtype, rng):
     """
 
     Generate a random empty graph of the given dtype
     """
 
-    return gen_random(N, dtype, [tg.default_one(dtype)], 0.0)
+    return gen_random(N, dtype, [tg.default_one(dtype)], 0.0, rng)
 
-def gen_fully_connected(N, dtype):
+def gen_fully_connected(N, dtype, rng):
     """
     generate a random fully-connected graph of the given dtype
     """
-    return gen_random(N, dtype, [tg.default_one(dtype)], 1.0)
+    return gen_random(N, dtype, [tg.default_one(dtype)], 1.0, rng)
 
 
-def gen_linear(N, dtype):
+def gen_linear(N, dtype, rng):
     """
 
     """
 
-    e = gen_empty(N, dtype)
+    e = gen_empty(N, dtype, rng)
     for i in range(N-1):
         e[i, i+1] = tg.default_one(dtype)
     return e
@@ -42,19 +42,21 @@ def gen_ladder(N, dtype):
     ng = nx.generators.classic.ladder_graph(N)
     return from_nx(ng, adj_type=dtype)
 
-def gen_random(N, dtype, edge_weights, prob_edge):
+def gen_random(N, dtype, edge_weights, prob_edge, rng=None):
     """
     Generate a random graph of the given dtype with 
     a fixed edge probability. 0 = empty graph, 1.0 = full graph, 
     possible edge weight values from edge_weights
 
     """
-
+    if rng is None:
+        rng = np.random.RandomState()
+        
     g = tg.TinyGraph(N, dtype)
     for i in range(N):
         for j in range(i+1, N):
-            if np.random.rand() < prob_edge:
-                g[i, j] = np.random.choice(edge_weights)
+            if rng.rand() < prob_edge:
+                g[i, j] = rng.choice(edge_weights)
     return g
 
 def add_random_ep(g, dt, rng=None):
@@ -118,13 +120,13 @@ def create_suite(seed=0, rng=None):
             basename = f"{N}_{str(dtype)[8:-2]}"
 
             name = f"empty_{basename}"
-            out_graphs[name] = [gen_empty(N, dtype)]
+            out_graphs[name] = [gen_empty(N, dtype, rng)]
             
             name = f"fullyconnected_{basename}"
-            out_graphs[name] = [gen_fully_connected(N, dtype)]
+            out_graphs[name] = [gen_fully_connected(N, dtype, rng)]
             
             name = f"linear_{basename}"
-            out_graphs[name] = [gen_linear(N, dtype)]
+            out_graphs[name] = [gen_linear(N, dtype, rng)]
           
 
     SAMPLE_N = 5
@@ -135,7 +137,7 @@ def create_suite(seed=0, rng=None):
             edge_weights = [True]
             
             name = f"random_{prob_edge:.1f}_{str(dtype)[8:-2]}_{N}"
-            out_graphs[name] = [gen_random(N, dtype, edge_weights, prob_edge) \
+            out_graphs[name] = [gen_random(N, dtype, edge_weights, prob_edge, rng) \
                                 for _ in range(SAMPLE_N)]
         
 
@@ -146,7 +148,7 @@ def create_suite(seed=0, rng=None):
                 edge_weights = rng.randint(1, rng.randint(2, max(N//2, 3)),
                                                  size=rng.randint(1, N//2))
                 
-                out_graphs[name].append(gen_random(N, dtype, edge_weights, prob_edge))
+                out_graphs[name].append(gen_random(N, dtype, edge_weights, prob_edge, rng))
 
 
             dtype = np.float64
@@ -155,7 +157,7 @@ def create_suite(seed=0, rng=None):
             for i in range(SAMPLE_N):
                 edge_weights = rng.rand(rng.randint(1, N//2)) + 0.5
                 
-                out_graphs[name].append(gen_random(N, dtype, edge_weights, prob_edge))
+                out_graphs[name].append(gen_random(N, dtype, edge_weights, prob_edge, rng))
 
 
     return out_graphs
@@ -207,7 +209,7 @@ def create_suite_global_prop(seed=0):
                               'baz' : [1, 2, 3],
                               'quxx' : {'foo' : 100},
                               'quxxx' : None}
-            number = np.random.randint(1, len(possible_props)+1)
+            number = rng.randint(1, len(possible_props)+1)
             for i in range(number):
                 k = rng.choice(list(possible_props.keys()))
                 g.props[k] = possible_props[k] 
@@ -241,7 +243,7 @@ def create_netx_suite(seed=0, rng=None):
             out_graphs[name] = []
             for i in range(SAMPLE_N):
                 ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
-                            prob_edge,np.random.RandomState())
+                            prob_edge,rng)
                 t = from_nx(ng,adj_type=dtype)
                 out_graphs[name].append(t)
 
@@ -253,10 +255,10 @@ def create_netx_suite(seed=0, rng=None):
                 edge_weights = rng.randint(1, rng.randint(2, max(N//2, 3)),
                                                     size=rng.randint(1, N//2))
                 ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
-                            prob_edge,np.random.RandomState())
+                            prob_edge,rng)
                 t = from_nx(ng,adj_type=dtype)
                 for e1, e2 in t.edges():
-                    t[e1, e2] = np.random.choice(edge_weights)
+                    t[e1, e2] = rng.choice(edge_weights)
                 out_graphs[name].append(t)
 
 
@@ -266,10 +268,10 @@ def create_netx_suite(seed=0, rng=None):
             for i in range(SAMPLE_N):
                 edge_weights = rng.rand(rng.randint(1, N//2)) + 0.5
                 ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
-                            prob_edge,np.random.RandomState())
+                            prob_edge,rng)
                 t = from_nx(ng,adj_type=dtype)
                 for e1, e2 in t.edges():
-                    t[e1, e2] = np.random.choice(edge_weights)
+                    t[e1, e2] = rng.choice(edge_weights)
                 out_graphs[name].append(t)
 
 
