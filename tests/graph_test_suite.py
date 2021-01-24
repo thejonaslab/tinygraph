@@ -244,6 +244,8 @@ def create_nx_suite(seed=0, rng=None):
             for i in range(SAMPLE_N):
                 ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
                             prob_edge,rng)
+                if ng.number_of_nodes() == 0:
+                    continue
                 t = from_nx(ng,adj_type=dtype)
                 out_graphs[name].append(t)
 
@@ -256,6 +258,8 @@ def create_nx_suite(seed=0, rng=None):
                                                     size=rng.randint(1, N//2))
                 ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
                             prob_edge,rng)
+                if ng.number_of_nodes() == 0:
+                    continue
                 t = from_nx(ng,adj_type=dtype)
                 for e1, e2 in t.edges():
                     t[e1, e2] = rng.choice(edge_weights)
@@ -269,6 +273,8 @@ def create_nx_suite(seed=0, rng=None):
                 edge_weights = rng.rand(rng.randint(1, N//2)) + 0.5
                 ng = nx.generators.random_graphs.random_lobster(N,prob_edge,\
                             prob_edge,rng)
+                if ng.number_of_nodes() == 0:
+                    continue
                 t = from_nx(ng,adj_type=dtype)
                 for e1, e2 in t.edges():
                     t[e1, e2] = rng.choice(edge_weights)

@@ -232,6 +232,7 @@ def test_subgraph_suite(test_name):
         # Get order and a random permutation
         N = g.vert_N
         SN = rng.randint(N)
+        print(SN)
         vert_list = rng.choice(N, SN, replace=False)
         vertices = sorted(vert_list)
 
@@ -257,14 +258,14 @@ def test_subgraph_suite(test_name):
 
         # Unclear what ordering will result from iterating over vertset
         # so just check that we can reconstruct the original
-        vertset = set(vert_list)
+        vertset = rng.permutation(vert_list)
         h_set = subgraph(g, vertset)
 
         # Attempt to reconstruct the subgraph `h` made with `vertices`.
         # Note that h_set.v['old_vertex_id'] has indices that lie outside
         # the normal range. So, we perform an argsort and a reverse argsort
         # which brings all the indices in range and preserves the order.
-        order = np.argsort(h_set.v['old_vertex_id'])
+        order = np.argsort(np.argsort(h_set.v['old_vertex_id']))
         h_rec = permute(h_set, order)
         h_rec.remove_vert_prop('old_vertex_id')
         g.remove_vert_prop('old_vertex_id')
