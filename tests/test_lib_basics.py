@@ -6,16 +6,7 @@ import graph_test_suite
 import io
 import pytest
 
-
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-gl_suite = graph_test_suite.create_suite_global_prop()
-nx_suite = graph_test_suite.create_nx_suite()
-
-suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite, **nx_suite}
-
-
+suite = graph_test_suite.get_full_suite()
 
 def test_create_graphs_types():
     """

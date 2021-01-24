@@ -282,3 +282,12 @@ def create_nx_suite(seed=0, rng=None):
 
 
     return out_graphs
+
+def get_full_suite():
+    basic_suite = create_suite()
+    vp_suite = create_suite_vert_prop()
+    ep_suite = create_suite_edge_prop()
+    gl_suite = create_suite_global_prop()
+    nx_suite = create_nx_suite()
+
+    return {**basic_suite, **vp_suite, **ep_suite, **gl_suite, **nx_suite}

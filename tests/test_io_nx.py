@@ -7,13 +7,7 @@ import pytest
 import graph_test_suite
 
 # Graph test suite tests
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-gl_suite = graph_test_suite.create_suite_global_prop()
-nx_suite = graph_test_suite.create_nx_suite()
-
-suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite, **nx_suite}
+suite = graph_test_suite.get_full_suite()
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_nx_suite(test_name):
