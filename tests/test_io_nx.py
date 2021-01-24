@@ -11,35 +11,9 @@ basic_suite = graph_test_suite.create_suite()
 vp_suite = graph_test_suite.create_suite_vert_prop()
 ep_suite = graph_test_suite.create_suite_edge_prop()
 gl_suite = graph_test_suite.create_suite_global_prop()
+nx_suite = graph_test_suite.create_nx_suite()
 
-suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite}
-
-nx_suite = graph_test_suite.create_netx_suite()
-
-@pytest.mark.slow
-@pytest.mark.parametrize("test_name", [k for k in nx_suite.keys()])
-def test_nx_suite_netx(test_name):
-    """
-    Run the netx tests from the graph test suite. Converts graph into networkx
-    and back into tinygraph, then checks for graph equality (using tg.util).
-    """
-    for g in nx_suite[test_name]:
-        # Convert to networkx and back
-
-        # Get name if applicable
-        name_arg = 'name' if 'name' in g.v.keys() else None
-        ng = tg.io.to_nx(g, weight_prop='weight', name_prop=name_arg)
-
-        # Extract data types (may be suboptimal but works..)
-        vp_types = dict(map(lambda k: (k, g.v[k].dtype), g.v))
-        ep_types = dict(map(lambda k: (k, g.e[k].dtype), g.e.keys()))
-        g2 = tg.io.from_nx(ng,
-                           adj_type=g.adjacency.dtype,
-                           weight_prop='weight', name_prop=name_arg,
-                           vp_types=vp_types,
-                           ep_types=ep_types)
-
-        assert tg.util.graph_equality(g, g2)
+suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite, **nx_suite}
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_nx_suite(test_name):

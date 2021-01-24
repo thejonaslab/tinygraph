@@ -10,28 +10,9 @@ basic_suite = graph_test_suite.create_suite()
 vp_suite = graph_test_suite.create_suite_vert_prop()
 ep_suite = graph_test_suite.create_suite_edge_prop()
 gl_suite = graph_test_suite.create_suite_global_prop()
+nx_suite = graph_test_suite.create_nx_suite()
 
-suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite}
-
-nx_suite = graph_test_suite.create_netx_suite()
-
-@pytest.mark.slow
-@pytest.mark.parametrize("test_name", [k for k in nx_suite.keys()])
-def test_netx_binary(test_name):
-    """
-    Test the conversion to and from binary using networkx generated graphs.
-    """
-
-    for g in nx_suite[test_name]:
-
-        outbuf = io.BytesIO()
-        tg.io.to_binary(g, outbuf)
-        s = outbuf.getvalue()
-        inbuf = io.BytesIO(s)
-
-        new_g = tg.io.from_binary(inbuf)
-        
-        assert tg.util.graph_equality(g, new_g)
+suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite, **nx_suite}
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_binary(test_name):

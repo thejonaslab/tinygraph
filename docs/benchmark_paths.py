@@ -27,9 +27,9 @@ for i in range(100):
     t2 = time.time()
     t_w = t2 - t1
 
-    netx = to_nx(g, weight_prop = "weight")
+    nx_g = to_nx(g, weight_prop = "weight")
 
-    nx_sp = dict(nx.all_pairs_shortest_path_length(netx))
+    nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
     for i in range(VERT_N):
         for j in range(VERT_N):
             if not j in nx_sp[i]:

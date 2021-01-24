@@ -22,9 +22,9 @@ for i in range(100):
     tg_cc = algs.get_connected_components(g)
     t2 = time.time()
     
-    netx = to_nx(g, weight_prop = "weight")
+    nx_g = to_nx(g, weight_prop = "weight")
 
-    nx_cc = list(nx.connected_components(netx))
+    nx_cc = list(nx.connected_components(nx_g))
     assert len(list(nx_cc)) == len(tg_cc)
     for cc in nx_cc:
         assert cc in tg_cc

@@ -8,10 +8,9 @@ basic_suite = graph_test_suite.create_suite()
 vp_suite = graph_test_suite.create_suite_vert_prop()
 ep_suite = graph_test_suite.create_suite_edge_prop()
 gl_suite = graph_test_suite.create_suite_global_prop()
+nx_suite = graph_test_suite.create_nx_suite()
 
-suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite}
-
-nx_suite = graph_test_suite.create_netx_suite()
+suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite, **nx_suite}
 
 ### Permute ###
 
@@ -122,32 +121,6 @@ def test_permute_dict():
 
     assert list(h.v['name']) == ['d', 'c', 'a', 'b']
 
-@pytest.mark.slow
-@pytest.mark.parametrize("test_name", [k for k in nx_suite.keys()])
-def test_permutation_inversion_netx(test_name):
-    """Use the graph netx suite to permute and un-permute a graph"""
-    rng = np.random.RandomState(0)
-
-    for g in nx_suite[test_name]:
-        # Get order and a random permutation
-        N = g.vert_N
-        perm     = rng.permutation(N)
-        inv_perm = np.argsort(perm)
-
-        # Permute the permutation
-        # m e t a
-        order = rng.permutation(N)
-        inv_perm_dict = dict(zip(np.arange(N)[order], inv_perm[order]))
-
-        # Use the list version
-        h = permute(g, perm)
-        g2 = permute(h, inv_perm)
-        assert graph_equality(g, g2)
-
-        # Use the dict version
-        g3 = permute(h, inv_perm_dict)
-        assert graph_equality(g, g3)
-
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_permutation_inversion_suite(test_name):
     """Use the graph suite to permute and un-permute a graph"""
@@ -249,57 +222,6 @@ def test_subgraph_duplicate():
     assert sg.vert_N == 3
     assert np.array_equal(adj, sg.adjacency)
     assert np.array_equal(['a', 'a', 'b'], sg.v['name'])
-
-@pytest.mark.slow
-@pytest.mark.parametrize("test_name", [k for k in nx_suite.keys()])
-def test_subgraph_netx(test_name):
-    """Use the netx test suite to grab subgraphs"""
-    rng = np.random.RandomState(0)
-
-    for g in nx_suite[test_name]:
-        # Get order and a random permutation
-        N = g.vert_N
-        if N == 0:
-            continue
-        SN = rng.randint(N)
-        vert_list = rng.choice(N, SN, replace=False)
-        vertices = sorted(vert_list)
-
-        h = subgraph(g, vertices)
-
-        # Check global properties
-        assert h.props == g.props
-
-        # Check vertex properties
-        for n, _ in h.vertices():
-            for k in g.v.keys():
-                assert h.v[k][n] == g.v[k][vertices[n]]
-
-        # Check edge properties and weights
-        for n1, n2 in h.edges():
-            assert h[n1, n2] == g[vertices[n1], vertices[n2]]
-            for k in g.e.keys():
-                assert h.e[k][n1, n2] == g.e[k][vertices[n1], vertices[n2]]
-
-        # # Check behavior with vertices
-        # g.add_vert_prop('old_vertex_id', np.int)
-        # g.v['old_vertex_id'][:] = np.arange(N)
-
-        # # Unclear what ordering will result from iterating over vertset
-        # # so just check that we can reconstruct the original
-        # vertset = set(vert_list)
-        # h_set = subgraph(g, vertset)
-
-        # # Attempt to reconstruct the subgraph `h` made with `vertices`.
-        # # Note that h_set.v['old_vertex_id'] has indices that lie outside
-        # # the normal range. So, we perform an argsort and a reverse argsort
-        # # which brings all the indices in range and preserves the order.
-        # order = np.argsort(h_set.v['old_vertex_id'])
-        # h_rec = permute(h_set, order)
-        # h_rec.remove_vert_prop('old_vertex_id')
-        # g.remove_vert_prop('old_vertex_id')
-
-        # assert graph_equality(h, h_rec)
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_subgraph_suite(test_name):
@@ -431,48 +353,6 @@ def test_merge_prop_types():
     assert np.array_equal(gh.v['name'], ['aaa', 'baa', 'hello', 'world'])
     assert gh.e['length'][0, 1] == g1.e['length'][0, 1]
     assert gh.e['length'][2, 3] == g5.e['length'][0, 1]
-
-@pytest.mark.slow
-@pytest.mark.parametrize("test_name", [k for k in nx_suite.keys()])
-def test_merge_netx(test_name):
-    """Use the netx test suite to grab merges"""
-    for i in range(len(nx_suite[test_name])-1):
-        g1 = nx_suite[test_name][i]
-        g2 = nx_suite[test_name][i+1]
-
-        gg = merge(g1, g2)
-
-        # Preliminary
-        assert gg.vert_N == g1.vert_N + g2.vert_N
-
-        # Just check for transfer of global property names
-        for key in g1.props.keys():
-            assert key in gg.props.keys()
-        for key in g2.props.keys():
-            assert key in gg.props.keys()
-
-        # Check vertex properties in bulk
-        for key in g1.v.keys():
-            assert key in gg.v.keys()
-            assert np.array_equal(gg.v[key][:g1.vert_N], g1.v[key])
-        for key in g2.v.keys():
-            assert key in gg.v.keys()
-            assert np.array_equal(gg.v[key][g1.vert_N:], g2.v[key])
-
-        # Check edges through the EdgeProxy instead of e_p like in the function
-        for key in g1.e.keys():
-            assert key in gg.e.keys()
-            for n1, n2 in g1.edges():
-                assert g1.e[key][n1, n2] == gg.e[key][n1, n2]
-
-        for key in g2.e.keys():
-            assert key in gg.e.keys()
-            for n1, n2 in g2.edges():
-                assert g2.e[key][n1, n2] == gg.e[key][g.vert_N+n1, g.vert_N+n2]
-
-        # Adjacency
-        assert np.array_equal(g1.adjacency, gg.adjacency[:g1.vert_N, :g1.vert_N])
-        assert np.array_equal(g2.adjacency, gg.adjacency[g1.vert_N:, g1.vert_N:])
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_merge_suite(test_name):

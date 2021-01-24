@@ -4,14 +4,6 @@ import numpy as np
 import pytest
 import graph_test_suite
 
-# basic_suite = graph_test_suite.create_suite()
-# vp_suite = graph_test_suite.create_suite_vert_prop()
-# ep_suite = graph_test_suite.create_suite_edge_prop()
-# gl_suite = graph_test_suite.create_suite_global_prop()
-
-# suite = {**basic_suite, **vp_suite, **ep_suite, **gl_suite}
-
-
 def test_vertices():
     """
     Simple test of getting vertex properties.
