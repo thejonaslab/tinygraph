@@ -21,8 +21,9 @@ project = 'TinyGraph'
 copyright = '2021, The Jonas Lab'
 author = 'The Jonas Lab'
 
+import tinygraph
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = tinygraph.__version__
 
 
 # -- General configuration ---------------------------------------------------
