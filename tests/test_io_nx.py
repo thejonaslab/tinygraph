@@ -7,12 +7,7 @@ import pytest
 import graph_test_suite
 
 # Graph test suite tests
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-prop_suite = graph_test_suite.create_suite_global_prop()
-
-suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
+suite = graph_test_suite.get_full_suite()
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_nx_suite(test_name):
@@ -125,13 +120,13 @@ def test_nx_modification():
     """Ensure modifications behave the same way"""
     t = tg.TinyGraph(3)
 
-    # Add a new node and edge to ng
+    # Add a new vertex and edge to ng
     ng = tg.io.to_nx(t, weight_prop = 'weight', name_prop=None)
     ng.add_node(3, name=3)
     ng.add_edge(2, 3, weight=5)
 
-    # Add the same node and edge in t
-    t.add_node(weight=5)
+    # Add the same vertex and edge in t
+    t.add_vertex(weight=5)
     t[2, 3] = 5
     t[3, 2] = 5
 
@@ -171,7 +166,7 @@ def test_default_values():
                      weight_prop='weight',
                      name_prop='name')
 
-    # The nodes and edges are unchanged
+    # The vertices and edges are unchanged
     assert list(g.nodes.keys()) == list(g2.nodes.keys())
     assert list(g.edges.keys()) == list(g2.edges.keys())
 
@@ -189,11 +184,11 @@ def neighbors_graph():
     g.v['name'][:] = ['Hank', 'Frank', 'Tank', 'Yank']
     g.v['pet'][:] = ['Socks', 'Spot', 'Coffee', 'Cat']
 
-    g[0, 1] = 1;
+    g[0, 1] = 1
     g.e['neighbors'][0, 1] = True
     g.e['friends'][0, 1] = True
 
-    g[0, 2] = 1;
+    g[0, 2] = 1
     g.e['neighbors'][0, 2] = False
     g.e['friends'][0, 2] = False
     return g

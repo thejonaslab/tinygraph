@@ -9,10 +9,22 @@ import numpy as np
 from tinygraph.fastutils import get_connected_components
 from tinygraph.fastutils import get_shortest_paths
 
+def is_connected(tg):
+    """
+    Determines if a graph is fully connected.
+
+    Inputs:
+        tg (TinyGraph): graph to check for connectedness.
+
+    Outputs:
+        connected (bool): whether the graph is fully connected.
+    """
+    return len(get_connected_components(tg)) == 1
+
 def get_min_cycles(tg):
     """
-    Determines if a node in a graph is part of a cycle, and if so, returns the 
-    minimum  sized such cycle (by number of nodes). 
+    Determines if a vertex in a graph is part of a cycle, and if so, returns the 
+    minimum  sized such cycle (by number of vertices). 
     ? Do we want to create separate functions or try to extend this to
     ? get the minimum cycle by weights or some edge/vertex property?
 
@@ -20,18 +32,18 @@ def get_min_cycles(tg):
         tg (TinyGraph): graph to find cycles in.
 
     Outputs:
-        cycle ([{int}]): A list of the minimum length cycle (by number of nodes)
-            for each node in tg. Cycles are represented by a set of the nodes in
-            the cycle, and the list is order by node (cycle[0] is min cycle that
-            includes node 0).
+        cycle ([{int}]): A list of the minimum length cycle (by number of vertices)
+            for each vertex in tg. Cycles are represented by a set of the vertices in
+            the cycle, and the list is order by vertex (cycle[0] is min cycle that
+            includes vertex 0).
     """
-    # Keep track of min cycle for each node.
+    # Keep track of min cycle for each vertex.
     cycles = []
-    for i in range(tg.node_N):
+    for i in range(tg.vert_N):
         cc = set()
-        # Create a FIFO queue to keep track of the nodes which are the same 
-        # number of steps from i. Also keep a set which is the nodes on the path 
-        # to that node.
+        # Create a FIFO queue to keep track of the vertices which are the same 
+        # number of steps from i. Also keep a set which is the vertices on the path 
+        # to that vertices.
         q = Queue()
         cycle_found = False
         init_path = {i,}

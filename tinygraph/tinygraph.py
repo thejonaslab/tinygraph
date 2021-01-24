@@ -151,16 +151,16 @@ class TinyGraph:
     matrix, which defines the graph stucture under the assumption that we are
     using undirected, weighted graphs without self-loops. Each graph also has a
     set of vertex properties and a set of edge properties. We will also use
-    numpy arrays to store the properties at each node or edge.
+    numpy arrays to store the properties at each vertex or edge.
     """
 
-    def __init__(self, node_N, adj_type=np.float32, vp_types={}, ep_types={}):
+    def __init__(self, vert_N, adj_type=np.float32, vp_types={}, ep_types={}):
         """
         Initalize a new TinyGraph instance.
 
         Inputs:
-            node_N (int): Number of nodes in the graph. Adding and removing
-                nodes is much slower than adding or removing edges, so setting
+            vert_N (int): Number of vertices in the graph. Adding and removing
+                vertices is much slower than adding or removing edges, so setting
                 this value accurately initially can improve efficiency.
             adj_type (numpy type): The type of the edge weights.
             vp_types (string:numpy type): A map from vertex property names to
@@ -172,8 +172,8 @@ class TinyGraph:
             tg (TinyGraph): new TinyGraph instance.
         """
 
-        self.__node_N = node_N
-        self.adjacency = np.zeros((node_N, node_N), dtype = adj_type)
+        self.__vert_N = vert_N
+        self.adjacency = np.zeros((vert_N, vert_N), dtype = adj_type)
 
         self.v = {}
         self.e_p = {}
@@ -188,8 +188,8 @@ class TinyGraph:
         self.props = {}
         
     @property
-    def node_N(self):
-        return self.__node_N
+    def vert_N(self):
+        return self.__vert_N
     @property
     def edge_N(self):
         e = np.count_nonzero(self.adjacency)
@@ -210,7 +210,7 @@ class TinyGraph:
         if name in self.v:
             raise KeyError(f"Graph already has vertex property named {name}")
         
-        self.v[name] = np.zeros(self.__node_N, dtype=dtype)
+        self.v[name] = np.zeros(self.__vert_N, dtype=dtype)
 
     def add_edge_prop(self, name, dtype):
         """
@@ -225,7 +225,7 @@ class TinyGraph:
         if name in self.e_p:
             raise KeyError(f"Graph already has edge property named {name}")
         
-        self.e_p[name] = np.zeros((self.__node_N, self.__node_N), dtype=dtype)
+        self.e_p[name] = np.zeros((self.__vert_N, self.__vert_N), dtype=dtype)
 
     def remove_vert_prop(self, name):
         """
@@ -251,11 +251,11 @@ class TinyGraph:
         
 
 
-    def add_node(self, props = {}, **kwargs):
+    def add_vertex(self, props = {}, **kwargs):
         """
-        Add a node to a TinyGraph instance. This process can be slow because it
+        Add a vertex to a TinyGraph instance. This process can be slow because it
         requires reshaping the adjacency and property arrays.
-        The new node will have the highest index (node_N - 1).
+        The new vertex will have the highest index (vert_N - 1).
 
         Inputs:
              properties are passed as key=value pairs or as a props dictionary
@@ -269,39 +269,39 @@ class TinyGraph:
         """
         # # New Adjacency matrix
         # # Currently discards the old adjacency matrix entirely
-        # new_adj = np.zeros((self.node_N+1, self.node_N+1), dtype=self.adj_type)
-        # new_adj[:self.node_N, :self.node_N] = self.adjacency
+        # new_adj = np.zeros((self.vert_N+1, self.vert_N+1), dtype=self.adj_type)
+        # new_adj[:self.vert_N, :self.vert_N] = self.adjacency
         # self.adjacency = new_adj
 
-        self.adjacency = np.insert(self.adjacency, self.__node_N, 0, axis=0)
-        self.adjacency = np.insert(self.adjacency, self.__node_N, 0, axis=1)
+        self.adjacency = np.insert(self.adjacency, self.__vert_N, 0, axis=0)
+        self.adjacency = np.insert(self.adjacency, self.__vert_N, 0, axis=1)
 
         combined_props = {**props, **kwargs}
         # New vertex property arrays
         for key in self.v.keys():
             # Can resize because it's flat
-            self.v[key].resize(self.__node_N+1)
+            self.v[key].resize(self.__vert_N+1)
 
             # Grab the argument value
             if key in combined_props.keys():
-                self.v[key][self.__node_N] = props[key]
+                self.v[key][self.__vert_N] = props[key]
 
         # Reshape edge property arrays
         for key in self.e_p.keys():
-            self.e_p[key] = np.insert(self.e_p[key], self.__node_N, 0, axis=0)
-            self.e_p[key] = np.insert(self.e_p[key], self.__node_N, 0, axis=1)
+            self.e_p[key] = np.insert(self.e_p[key], self.__vert_N, 0, axis=0)
+            self.e_p[key] = np.insert(self.e_p[key], self.__vert_N, 0, axis=1)
 
-        # Update the node count
-        self.__node_N += 1
+        # Update the vertex count
+        self.__vert_N += 1
 
-    def remove_node(self, n):
+    def remove_vertex(self, n):
         """
-        Remove a node from a TinyGraph instance. This process can be slow
+        Remove a vertex from a TinyGraph instance. This process can be slow
         because it requires reshaping the adjacency and property arrays.
-        Moves up the nodes after n so that the numbering remains dense.
+        Moves up the vertices after n so that the numbering remains dense.
 
         Inputs:
-            n (int): Node to remove. Nodes are indexed numerically 0...node_N-1.
+            n (int): Vertex to remove. Vertices are indexed numerically 0...vert_N-1.
 
         Outputs:
             None - modifications are made in place.
@@ -319,8 +319,8 @@ class TinyGraph:
             self.e_p[key] = np.delete(self.e_p[key], n, axis = 0)
             self.e_p[key] = np.delete(self.e_p[key], n, axis = 1)
 
-        # Update the node count
-        self.__node_N -= 1
+        # Update the vertex count
+        self.__vert_N -= 1
 
     def __setitem__(self, key, newValue):
         """
@@ -329,7 +329,7 @@ class TinyGraph:
         value, it is removed, setting all of its property values to their zeros.
 
         Inputs:
-            key (int, int): Endpoint nodes of edge.
+            key (int, int): Endpoint vertices of edge.
             newValue (adj_type): Weight of edge.
 
         Outputs:
@@ -354,7 +354,7 @@ class TinyGraph:
         Get the weight of an edge. This operation is fast.
 
         Inputs:
-            key (int, int): Endpoint nodes of edge.
+            key (int, int): Endpoint vertices of edge.
 
         Outputs:
             weight (adj_type): Weight of edge, or None (0?) if no edge exists.
@@ -378,10 +378,10 @@ class TinyGraph:
         v_p = {k : v.dtype for k, v in self.v.items()}
         e_p = {k : e.dtype for k, e in self.e_p.items()}
 
-        new_graph = TinyGraph(self.__node_N, self.adjacency.dtype, v_p, e_p)
+        new_graph = TinyGraph(self.__vert_N, self.adjacency.dtype, v_p, e_p)
         new_graph.adjacency[:] = self.adjacency
 
-        # Set node properties
+        # Set vertex properties
         for key, arr in self.v.items():
             new_graph.v[key][:] = self.v[key]
 
@@ -419,8 +419,8 @@ class TinyGraph:
         Get the properties at a given edge.
 
         Inputs:
-            n1 (int): Endpoint node 1 of edge to get properties of.
-            n2 (int): Endpoint node 2 of edge to get properties of.
+            n1 (int): Endpoint vertex 1 of edge to get properties of.
+            n2 (int): Endpoint vertex 2 of edge to get properties of.
             edge_props ([str]): A list of the edge properties to return, by
                 name.
 
@@ -437,32 +437,51 @@ class TinyGraph:
 
     def __repr__(self):
         """
-        Representation of graph for debugging.
+        Printable representation of a graph.
 
         Inputs:
             None
 
         Outputs:
-            rep (str): TinyGraph Representation.
+            rep (str): TinyGraph Representation. 
         """
-        rep = "Vertices:\n"
+
+        rep = "TinyGraph dtype=" + str(self.adjacency.dtype) + ", vert_N=" + \
+            str(self.vert_N) + ", edge_N=" + str(self.edge_N) + "\n" 
+        return rep
+    
+    def print_full_graph(self):
+        """
+        Full representation of a graph. Includes all global, vertex and edge
+        properties.
+
+        Inputs:
+            None
+
+        Outputs:
+            None - prints representation.
+        """
+        rep = "Global Properties:\n"
+        for name, prop in self.props.items():
+            rep += str(name) + ": " + str(prop) + "\n"
+        rep += "\nVertices:\n"
         for i, props in self.vertices(vert_props = self.v.keys()):
             rep += str(i) + ": " + str(props) + "\n"
         rep += "\nEdges:\n"
         for i,j,w,props in self.edges(weight = True,edge_props = self.e.keys()): 
             rep += "(" + str(i) + ", " + str(j) + "): Weight - " + str(w) +\
                 ", Props - " + str(props) + "\n"
-        return rep[:-1] # strip last newline 
+        print(rep[:-1]) # strip last newline 
 
     def get_neighbors(self, n):
         """
-        Get the neighbors of a node.
+        Get the neighbors of a vertex.
 
         Inputs:
-            n (int): The node to get the neighbors of.
+            n (int): The vertex to get the neighbors of.
 
         Outputs:
-            neighbors ([int]): A list of the neighbor nodes.
+            neighbors ([int]): A list of the neighbor vertices.
         """
         neighbors = np.argwhere(self.adjacency[n] != \
                                 default_zero(self.adjacency.dtype)).flatten()
@@ -473,7 +492,7 @@ class TinyGraph:
 
     def edges(self, weight = False, edge_props = None):
         """
-        Get a list of the edges by endpoint nodes, optionally with their weight 
+        Get a list of the edges by endpoint vertices, optionally with their weight 
         and some properties.
 
         Inputs:
@@ -509,20 +528,20 @@ class TinyGraph:
         Get a list of the vertices with some of their properties.
 
         Inputs:
-            vert_props ([string]): A list of node properties to return, by name.
+            vert_props ([string]): A list of vertex properties to return, by name.
                 By default this is empty and an empty map is returned. Must be
                 a list of existing properties.
 
         Outputs:
-            nodes ([node]): A list of nodes, where each node is represented by a
-                tuple. The first element of the tuple is the node index. The 
-                second element is a map from the provided node properties to
-                the values at the node. Even when no properties are provided, a
+            vertices ([vertex]): A list of vertices, where each vertex is represented by a
+                tuple. The first element of the tuple is the vertex index. The 
+                second element is a map from the provided vertex properties to
+                the values at the vertex. Even when no properties are provided, a
                 map is returned, since the list of vertices is simply 0...N-1, 
                 which can be retrieved more efficiently in other ways.
         """
-        nodes = []
-        for i in range(self.__node_N):
+        vertices = []
+        for i in range(self.__vert_N):
             n = (i, self.get_vert_props(i,vert_props),)
-            nodes.append(n)
-        return nodes
+            vertices.append(n)
+        return vertices

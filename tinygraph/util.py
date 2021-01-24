@@ -34,26 +34,26 @@ def graph_equality(g1, g2):
 
     return True
 
-def _subgraph_relabel(g, node_iter):
+def _subgraph_relabel(g, vert_iter):
     """
     Helper function to perform the work of permute and subgraph. Not intended for
     use by end-users. See instead functions permute and subgraph below.
 
-    This function returns the subgraph of g induced by node_iter (as the set of vertices)
-    Maintains the ordering of node_iter in constructing the new subgraph.
+    This function returns the subgraph of g induced by vert_iter (as the set of vertices)
+    Maintains the ordering of vert_iter in constructing the new subgraph.
 
     Inputs:
         g (TinyGraph): Original Tinygraph
 
-        node_iter (iterable): iterable containing indices of nodes to take as the
-            nodes of the subgraph. Contrary to permute(), here we expect
-                node_iter[new_vertex] = old_vertex
+        vert_iter (iterable): iterable containing indices of vertices to take as the
+            vertices of the subgraph. Contrary to permute(), here we expect
+                vert_iter[new_vertex] = old_vertex
             in order to support dropping (and possibly duplicating) old vertices
 
     Outputs:
-        sg (TinyGraph): subgraph with nodes in the same order as node_iter
+        sg (TinyGraph): subgraph with vertices in the same order as vert_iter
     """
-    N = len(node_iter)
+    N = len(vert_iter)
     new_g = tg.TinyGraph(N, g.adjacency.dtype,
                     {p:val.dtype for p, val in g.v.items()},
                     {p:val.dtype for p, val in g.e.items()})
@@ -68,16 +68,16 @@ def _subgraph_relabel(g, node_iter):
     # Magic index converter eliminates python-for-loops
     # at the expense of ignoring sparsity (moves everything)
     new_list = np.arange(N) # list of the new vertices
-    # node_iter is a list of old vertices ordered by destination indices
+    #vert_iter is a list of old vertices ordered by destination indices
     old_indices = (np.repeat(new_list,  N),  np.tile(new_list,  N))
-    new_indices = (np.repeat(node_iter, N),  np.tile(node_iter, N))
+    new_indices = (np.repeat(vert_iter, N),  np.tile(vert_iter, N))
 
     # Copy edge values
     new_g.adjacency[old_indices] = g.adjacency[new_indices]
 
     # Copy vertex properties
     for prop in g.v.keys():
-        new_g.v[prop][:] = g.v[prop][node_iter]
+        new_g.v[prop][:] = g.v[prop][vert_iter]
 
     # Copy edge properties
     for prop in g.e.keys():
@@ -101,8 +101,8 @@ def permute(g, perm):
     # Internally uses a list
     perm = [perm[i] for i in range(len(perm))]
 
-    if  len(perm) != g.node_N \
-        or not np.array_equal(np.unique(perm), np.arange(g.node_N)):
+    if  len(perm) != g.vert_N \
+        or not np.array_equal(np.unique(perm), np.arange(g.vert_N)):
         raise IndexError("Invalid permutation passed to permute!")
 
     # Flip the order of stuff in perm
@@ -110,28 +110,28 @@ def permute(g, perm):
 
     return _subgraph_relabel(g, perm_inv)
 
-def subgraph(g, nodes):
+def subgraph(g, vertices):
     """
-    Returns induced subgraph of g on nodes in node_list.
+    Returns induced subgraph of g on vertices in vert_list.
     Grabs all the relevant properties as well.
-    Raises an index error in case of invalid nodes in node_list.
+    Raises an index error in case of invalid vertices in vert_list.
 
     Inputs:
         g (TinyGraph): Original TinyGraph
-        nodes (iterable): iterable of indices of nodes to take
-            as the nodes of the subgraph
+        vertices (iterable): iterable of indices of vertices to take
+            as the vertices of the subgraph
 
     Output:
         sg (TinyGraph): induced subgraph
     """
     # Internally uses a list
-    nodes = list(nodes)
+    vertices = list(vertices)
 
-    if  np.any(np.array(nodes) > g.node_N) \
-        or np.any(np.array(nodes) < 0):
-        raise IndexError(f"nodes iterable contains out-of-bounds indices!")
+    if  np.any(np.array(vertices) > g.vert_N) \
+        or np.any(np.array(vertices) < 0):
+        raise IndexError(f"vertices iterable contains out-of-bounds indices!")
 
-    return _subgraph_relabel(g, nodes)
+    return _subgraph_relabel(g, vertices)
 
 
 def merge(g1, g2):
@@ -187,14 +187,14 @@ def merge(g1, g2):
                       f"will result in {set(g1.e.keys()).union(set(g2.e.keys()))}")
 
     # Initialize the new merged graph
-    N = g1.node_N + g2.node_N
+    N = g1.vert_N + g2.vert_N
     new_g = tg.TinyGraph(N, adj_type, vp_types, ep_types)
 
     new_g.props = {**g2.props, **g1.props} # g1 later gives it precedence
 
     # Vertex properties
-    i1 = np.arange(g1.node_N)
-    i2 = np.arange(g1.node_N, g1.node_N+g2.node_N)
+    i1 = np.arange(g1.vert_N)
+    i2 = np.arange(g1.vert_N, g1.vert_N+g2.vert_N)
 
     for prop, prop_type in vp_types.items():
         # Load stuff from g1

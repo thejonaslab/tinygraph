@@ -5,19 +5,12 @@ import pytest
 import graph_test_suite
 import io
 
-
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-prop_suite = graph_test_suite.create_suite_global_prop()
-
-suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
-
+suite = graph_test_suite.get_full_suite()
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_binary(test_name):
     """
-
+    Test the conversion to and from binary.
     """
 
     for g in suite[test_name]:

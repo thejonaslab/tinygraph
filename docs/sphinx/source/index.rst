@@ -22,7 +22,7 @@ version |release|.
 
 TinyGraph is a :doc:`open source <license>` Python library for
 *small*, *weighted*, *undirected* graphs with no self-loops. TG
-supports node properties, edge properties, and edge weights by default. Behind the scenes data
+supports vertex properties, edge properties, and edge weights by default. Behind the scenes data
 is stored as NumPy_ arrays to make it easy to write fast graph algorithms with Numba_ and Cython_.
 We interoperate closely with other graph libraries, especially NetworkX_,
 to avoid reimplementing the wheel.

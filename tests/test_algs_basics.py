@@ -6,6 +6,8 @@ import graph_test_suite
 import networkx as nx
 import numpy as np
 
+suite = graph_test_suite.get_full_suite()
+
 def test_cc_empty():
     """
     Empty graph has no connected components.
@@ -13,6 +15,7 @@ def test_cc_empty():
     g = tg.TinyGraph(0)
 
     assert algs.get_connected_components(g) == []
+    assert algs.is_connected(g) == False
 
 def test_cc_one_comp():
     """
@@ -25,6 +28,7 @@ def test_cc_one_comp():
     g[3,4] = 1
 
     assert algs.get_connected_components(g) == [set(range(5)),]
+    assert algs.is_connected(g) == True
 
 def test_cc_multi_comp():
     """
@@ -38,13 +42,7 @@ def test_cc_multi_comp():
     g[4,5] = 1
 
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
-
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-
-suite = {**basic_suite, **vp_suite, **ep_suite}
-
+    assert algs.is_connected(g) == False
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_random(test_name):
@@ -56,15 +54,15 @@ def test_random(test_name):
         tg_cc = algs.get_connected_components(g)
         tg_sp = algs.get_shortest_paths(g,False)
 
-        netx = to_nx(g, weight_prop = "weight")
-        nx_cc = nx.connected_components(netx)
-        nx_sp = dict(nx.all_pairs_shortest_path_length(netx))
+        nx_g = to_nx(g, weight_prop = "weight")
+        nx_cc = nx.connected_components(nx_g)
+        nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
         
         for cc in nx_cc:
             assert cc in tg_cc
 
-        for i in range(g.node_N):
-            for j in range(g.node_N):
+        for i in range(g.vert_N):
+            for j in range(g.vert_N):
                 if not j in nx_sp[i]:
                     assert tg_sp[i][j] == np.inf
                 else:
@@ -72,7 +70,7 @@ def test_random(test_name):
 
 def test_cycles_empty():
     """
-    An empty graph has no nodes to be in cycles.
+    An empty graph has no vertices to be in cycles.
     """
     g = tg.TinyGraph(0)
 

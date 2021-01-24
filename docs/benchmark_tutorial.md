@@ -17,7 +17,7 @@ It turns out that the graphs in the graph test suite are not terribly
 representative of the kinds of graphs we might encounter in the real
 world. This shouldn't be terribly surprising because there are a _lot_
 of possible distributions over graphs. So instead we're going to
-generate random 128-node graphs with an edge probability of 0.02. This
+generate random 128-vertex graphs with an edge probability of 0.02. This
 should result in a reasonable distribution of the number of
 components. Note that *in general this is not sufficient*, and we'd
 want to test many more corner cases. We might optimize the code for
@@ -27,7 +27,7 @@ for a large number!
 To start out, we have the following performance:
 ```
 % python benchmark_cc.py
-average number of nodes: 128.0
+average number of vertices: 128.0
 average number of components: 12.05
 average runtime: 1.4310050010681152 ms
 ```
@@ -68,14 +68,14 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     13
     14                                               Outputs:
     15                                                   cc ([{int}]): A list of connected components of tg, where each connected
-    16                                                       component is given by a set of the nodes in the component.
+    16                                                       component is given by a set of the vertices in the component.
     17                                               """
-    18                                               # Track which nodes have not been visited yet, and keep a set with all of
+    18                                               # Track which vertices have not been visited yet, and keep a set with all of
     19                                               # the connected components.
-    20       100        640.0      6.4      0.2      unseen = set(range(tg.node_N))
+    20       100        640.0      6.4      0.2      unseen = set(range(tg.vert_N))
     21       100         54.0      0.5      0.0      components = []
     22      1343        399.0      0.3      0.1      while unseen:
-    23                                                   # While there are still unvisited nodes, start from an unvisited node
+    23                                                   # While there are still unvisited vertices, start from an unvisited vertex
     24                                                   # and explore its connected component.
     25      1243        534.0      0.4      0.2          comp = set()
     26      1243        549.0      0.4      0.2          bfs = set()
@@ -83,7 +83,7 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     28      1243        364.0      0.3      0.1              break
     29      1243        487.0      0.4      0.2          bfs.add(start)
     30     14043       4397.0      0.3      1.6          while bfs:
-    31                                                       # Explore a new node in the connected component, adding it to the
+    31                                                       # Explore a new vertex in the connected component, adding it to the
     32                                                       # connected component set and adding its neighbors to the set to
     33                                                       # explore next.
     34     12800       4940.0      0.4      1.7              current = bfs.pop()
@@ -120,19 +120,19 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     13
     14                                               Outputs:
     15                                                   cc ([{int}]): A list of connected components of tg, where each connected
-    16                                                       component is given by a set of the nodes in the component.
+    16                                                       component is given by a set of the vertices in the component.
     17                                               """
     18
     19                                               # precompute neighbor list
     20
-    21       100     197928.0   1979.3     72.0      neighbors = [tg.get_neighbors(n) for n in range(tg.node_N)]
+    21       100     197928.0   1979.3     72.0      neighbors = [tg.get_neighbors(n) for n in range(tg.vert_N)]
     22
-    23                                               # Track which nodes have not been visited yet, and keep a set with all of
+    23                                               # Track which vertices have not been visited yet, and keep a set with all of
     24                                               # the connected components.
-    25       100        515.0      5.2      0.2      unseen = set(range(tg.node_N))
+    25       100        515.0      5.2      0.2      unseen = set(range(tg.vert_N))
     26       100         61.0      0.6      0.0      components = []
     27      1326        509.0      0.4      0.2      while unseen:
-    28                                                   # While there are still unvisited nodes, start from an unvisited node
+    28                                                   # While there are still unvisited vertices, start from an unvisited vertex
     29                                                   # and explore its connected component.
     30      1226        577.0      0.5      0.2          comp = set()
     31      1226        604.0      0.5      0.2          bfs = set()
@@ -140,7 +140,7 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     33      1226        475.0      0.4      0.2              break
     34      1226        552.0      0.5      0.2          bfs.add(start)
     35     14026       5274.0      0.4      1.9          while bfs:
-    36                                                       # Explore a new node in the connected component, adding it to the
+    36                                                       # Explore a new vertex in the connected component, adding it to the
     37                                                       # connected component set and adding its neighbors to the set to
     38                                                       # explore next.
     39     12800       5780.0      0.5      2.1              current = bfs.pop()
@@ -157,7 +157,7 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
 
 Note that precomputing the neighbors helps a little bit but we're still
 spending a lot of time in that call. Let's make a function that just
-computes the neighbors for all nodes in a graph. Since it will involve
+computes the neighbors for all vertices in a graph. Since it will involve
 a for loop (which is traditionally slow in python) and there's no
 easy efficient NumPy way to do it, we can do it in Cython. 
 
@@ -193,14 +193,14 @@ Here's our fist crack at a function in cython:
 ```
 def get_all_neighbors(tg):
     """
-    For a TG with N nodes returns a NxN numpy array of
-    neighbors, where the ith row lists the node IDs of the 
+    For a TG with N vertices returns a NxN numpy array of
+    neighbors, where the ith row lists the vertex IDs of the 
     neighbors (and -1 otherwise)
     """
     
-    neighbors_out = np.ones((tg.node_N, tg.node_N), dtype=np.int16) * -1
+    neighbors_out = np.ones((tg.vert_N, tg.vert_N), dtype=np.int16) * -1
     
-    for n in range(tg.node_N):
+    for n in range(tg.vert_N):
         neighbors = tg.get_neighbors(n)
         neighbors_out[n, :len(neighbors)] = neighbors
 
@@ -222,19 +222,19 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     14
     15                                               Outputs:
     16                                                   cc ([{int}]): A list of connected components of tg, where each connected
-    17                                                       component is given by a set of the nodes in the component.
+    17                                                       component is given by a set of the vertices in the component.
     18                                               """
     19
     20                                               # precompute neighbor list
     21
     22       100     202425.0   2024.2     67.5      neighbors = tinygraph.fastutils.get_all_neighbors(tg)
     23
-    24                                               # Track which nodes have not been visited yet, and keep a set with all of
+    24                                               # Track which vertices have not been visited yet, and keep a set with all of
     25                                               # the connected components.
-    26       100        494.0      4.9      0.2      unseen = set(range(tg.node_N))
+    26       100        494.0      4.9      0.2      unseen = set(range(tg.vert_N))
     27       100         57.0      0.6      0.0      components = []
     28      1315        433.0      0.3      0.1      while unseen:
-    29                                                   # While there are still unvisited nodes, start from an unvisited node
+    29                                                   # While there are still unvisited vertices, start from an unvisited vertex
     30                                                   # and explore its connected component.
     31      1215        458.0      0.4      0.2          comp = set()
     32      1215        531.0      0.4      0.2          bfs = set()
@@ -242,13 +242,13 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     34      1215        358.0      0.3      0.1              break
     35      1215        438.0      0.4      0.1          bfs.add(start)
     36     14015       3913.0      0.3      1.3          while bfs:
-    37                                                       # Explore a new node in the connected component, adding it to the
+    37                                                       # Explore a new vertex in the connected component, adding it to the
     38                                                       # connected component set and adding its neighbors to the set to
     39                                                       # explore next.
     40     12800       4760.0      0.4      1.6              current = bfs.pop()
     41     12800       4112.0      0.3      1.4              unseen.remove(current)
     42     12800       4287.0      0.3      1.4              comp.add(current)
-    43     45354      17964.0      0.4      6.0              for n_i in range(tg.node_N):
+    43     45354      17964.0      0.4      6.0              for n_i in range(tg.vert_N):
     44     45354      24720.0      0.5      8.2                  n = int(neighbors[current, n_i])
     45     45354      13910.0      0.3      4.6                  if n < 0:
     46     12800       3914.0      0.3      1.3                      break
@@ -281,8 +281,8 @@ cimport cython
 @cython.wraparound(False)   # Deactivate negative indexing.
 cdef _get_all_neighbors(np.uint8_t[:,:] adj, np.int32_t[:, :] neighbors_out):  
     """
-    For a TG with N nodes returns a NxN numpy array of
-    neighbors, where the ith row lists the node IDs of the 
+    For a TG with N vertices returns a NxN numpy array of
+    neighbors, where the ith row lists the vertex IDs of the 
     neighbors (and -1 otherwise)
     """
     
@@ -299,12 +299,12 @@ cdef _get_all_neighbors(np.uint8_t[:,:] adj, np.int32_t[:, :] neighbors_out):
 
 def get_all_neighbors(tg):  
     """
-    For a TG with N nodes returns a NxN numpy array of
-    neighbors, where the ith row lists the node IDs of the 
+    For a TG with N vertices returns a NxN numpy array of
+    neighbors, where the ith row lists the vertex IDs of the 
     neighbors (and -1 otherwise)
     """
 
-    neighbors_out = np.ones((tg.node_N, tg.node_N), dtype=np.int32) * -1
+    neighbors_out = np.ones((tg.vert_N, tg.vert_N), dtype=np.int32) * -1
     
     
     _get_all_neighbors(tg.adjacency != tinygraph.default_zero(tg.adjacency.dtype),
@@ -356,19 +356,19 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     14
     15                                               Outputs:
     16                                                   cc ([{int}]): A list of connected components of tg, where each connected
-    17                                                       component is given by a set of the nodes in the component.
+    17                                                       component is given by a set of the vertices in the component.
     18                                               """
     19
     20                                               # precompute neighbor list
     21
     22       100       7363.0     73.6      6.5      neighbors = tinygraph.fastutils.get_all_neighbors(tg)
     23
-    24                                               # Track which nodes have not been visited yet, and keep a set with all of
+    24                                               # Track which vertices have not been visited yet, and keep a set with all of
     25                                               # the connected components.
-    26       100        600.0      6.0      0.5      unseen = set(range(tg.node_N))
+    26       100        600.0      6.0      0.5      unseen = set(range(tg.vert_N))
     27       100         54.0      0.5      0.0      components = []
     28      1298        425.0      0.3      0.4      while unseen:
-    29                                                   # While there are still unvisited nodes, start from an unvisited node
+    29                                                   # While there are still unvisited vertices, start from an unvisited vertex
     30                                                   # and explore its connected component.
     31      1198        482.0      0.4      0.4          comp = set()
     32      1198        517.0      0.4      0.5          bfs = set()
@@ -376,13 +376,13 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     34      1198        423.0      0.4      0.4              break
     35      1198        520.0      0.4      0.5          bfs.add(start)
     36     13998       4290.0      0.3      3.8          while bfs:
-    37                                                       # Explore a new node in the connected component, adding it to the
+    37                                                       # Explore a new vertex in the connected component, adding it to the
     38                                                       # connected component set and adding its neighbors to the set to
     39                                                       # explore next.
     40     12800       5027.0      0.4      4.4              current = bfs.pop()
     41     12800       4482.0      0.4      3.9              unseen.remove(current)
     42     12800       4641.0      0.4      4.1              comp.add(current)
-    43     45550      19403.0      0.4     17.0              for n_i in range(tg.node_N):
+    43     45550      19403.0      0.4     17.0              for n_i in range(tg.vert_N):
     44     45550      27467.0      0.6     24.1                  n = int(neighbors[current, n_i])
     45     45550      15331.0      0.3     13.4                  if n < 0:
     46     12800       4233.0      0.3      3.7                      break
@@ -410,7 +410,7 @@ into Cython. Note that `line_profiler` sadly cannot see inside of cython functio
 After our improvement above, we see:
 ```
 % python benchmark_cc.py
-average number of nodes: 128.0
+average number of vertices: 128.0
 average number of components: 11.57
 average runtime: 0.27662038803100586 ms
 ```
@@ -434,19 +434,19 @@ a speedup too!
 
 ```
 % python benchmark_cc.py
-average number of nodes: 128.0
+average number of vertices: 128.0
 average number of components: 11.62
 average runtime: 0.19039630889892578 ms
 ```
 
 33% faster for copying and pasting code! But we can do better. We'll
-use option three, in particular since our sets track node IDs we can
+use option three, in particular since our sets track vertex IDs we can
 replace them with an array of size N. A true value in this array means
-that the node at that index is in the set.
+that the vertex at that index is in the set.
 
 ```
 % python benchmark_cc.py
-average number of nodes: 128.0
+average number of vertices: 128.0
 average number of components: 12.22
 average runtime: 0.1161956787109375 ms
 ```

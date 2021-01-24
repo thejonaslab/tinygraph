@@ -6,14 +6,7 @@ import graph_test_suite
 import io
 import pytest
 
-
-basic_suite = graph_test_suite.create_suite()
-vp_suite = graph_test_suite.create_suite_vert_prop()
-ep_suite = graph_test_suite.create_suite_edge_prop()
-prop_suite = graph_test_suite.create_suite_global_prop()
-
-suite = {**basic_suite, **vp_suite, **ep_suite, **prop_suite}
-
+suite = graph_test_suite.get_full_suite()
 
 def test_create_graphs_types():
     """
@@ -85,19 +78,19 @@ def test_misbehavior():
 
 def test_basic_functionality():
     t = tg.TinyGraph(2, vp_types={'color': np.int32})
-    assert(t.node_N == 2)
+    assert(t.vert_N == 2)
 
     t[1,0] = 1
     assert(t.edge_N == 1)
 
-    t.add_node(props={'color': 3})
+    t.add_vertex(props={'color': 3})
     t[1,2] = 1
-    assert(t.node_N == 3)
+    assert(t.vert_N == 3)
     assert(t.edge_N == 2)
 
-    t.remove_node(0)
+    t.remove_vertex(0)
     assert(t.edge_N == 1)
-    assert(t.node_N == 2)
+    assert(t.vert_N == 2)
     assert(t.v['color'][1] == 3)
     assert(t.v['color'][0] == 0)
 
@@ -138,7 +131,7 @@ def test_add_props():
 
 def test_get_neighbors():
     """
-    Simple test of getting the neighbors for various nodes.
+    Simple test of getting the neighbors for various vertices.
     """
     g = tg.TinyGraph(6)
     g[0,1] = 1
@@ -219,7 +212,6 @@ def test_graph_props():
     g2.props['baz'] = 7
     
     assert not tg.util.graph_equality(g1, g2)
-    
 
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_copy_suite(test_name):
