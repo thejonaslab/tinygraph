@@ -3,8 +3,14 @@ from copy import deepcopy
 
 def default_zero(dtype):
     """
-    For a given dtype, return the zero value (which
-    will indicate the absence of an edge)
+    For a given dtype, return the zero value (which will indicate the absence of
+    an edge). Raises an error on unknown datatypes.
+
+    Inputs:
+        dtype (class): Datatype of property or array.
+
+    Outputs:
+        def_zero (dtype): Default zero value of given dtype.
     """
     if dtype == np.bool:
         return False
@@ -18,8 +24,14 @@ def default_zero(dtype):
 
 def default_one(dtype):
     """
-    For a given dtype, return the default one value (which
-    will indicate the presence of an edge / be the default weight)
+    For a given dtype, return the one value (which will indicate the presence of
+    an edge). Raises an error on unknown datatypes.
+
+    Inputs:
+        dtype (class): Datatype of property or array.
+
+    Outputs:
+        def_one (dtype): Default one value of given dtype.
     """
     if dtype == np.bool:
         return True
@@ -43,7 +55,7 @@ class EdgeProxy:
         Inputs:
             g (TinyGraph): The graph which EdgeProxy is accessing a property of.
                 EdgeProxy will alter one property in g.e_p.
-            property (string): The name of the property to access.
+            property (str): The name of the property to access.
         
         Outputs:
             ep (EdgeProxy): new EdgeProxy object.
@@ -136,7 +148,7 @@ class EdgeProxyGenerator:
         Generates an EdgeProxy object for a user to access an edge property.
 
         Inputs:
-            key (string): The property name to access
+            key (str): The property name to access
 
         Outputs:
             ep (EdgeProxy): An EdgeProxy object with access to the desired 
@@ -146,7 +158,7 @@ class EdgeProxyGenerator:
 
 class TinyGraph:
     """
-    tinygraph is centered around our representation of graphs through numpy
+    TinyGraph is centered around our representation of graphs through numpy
     arrays using the class TinyGraph. The central feature is the adjacency
     matrix, which defines the graph stucture under the assumption that we are
     using undirected, weighted graphs without self-loops. Each graph also has a
@@ -160,12 +172,12 @@ class TinyGraph:
 
         Inputs:
             vert_N (int): Number of vertices in the graph. Adding and removing
-                vertices is much slower than adding or removing edges, so setting
+                vertices is much slower than adding or removing edges - setting
                 this value accurately initially can improve efficiency.
             adj_type (numpy type): The type of the edge weights.
-            vp_types (string:numpy type): A map from vertex property names to
+            vp_types (str:numpy type): A map from vertex property names to
                 the types of each property.
-            ep_types (string:numpy type): A map from edge property names to
+            ep_types (str:numpy type): A map from edge property names to
                 the types of each property.
 
         Outputs:
@@ -204,8 +216,11 @@ class TinyGraph:
         Add the vertex property named 'name' to the graph. 
 
         Inputs:
-             name : name (string)
-             dtype : numpy dtype
+            name (str): property name
+            dtype (class): numpy dtype of property
+
+        Outputs:
+            None
         """
         if name in self.v:
             raise KeyError(f"Graph already has vertex property named {name}")
@@ -216,10 +231,12 @@ class TinyGraph:
         """
         Add the edge property named 'name' to the graph. 
         
-        Inputs: 
-             name : name (string)
-             dtype : numpy dtype
+        Inputs:
+            name (str): property name
+            dtype (class): numpy dtype of property
 
+        Outputs:
+            None
         """
         
         if name in self.e_p:
@@ -232,8 +249,10 @@ class TinyGraph:
         Removes the indicated vertex property from the graph
 
         Inputs:
-             name: the name of the property
+            name (str): the name of the property
 
+        Outputs:
+            None
         """
 
         del self.v[name]
@@ -243,8 +262,10 @@ class TinyGraph:
         Removes the indicated edge property from the graph
 
         Inputs:
-             name: the name of the property
+            name (str): the name of the property
 
+        Outputs:
+            None
         """
 
         del self.e_p[name]
@@ -253,26 +274,19 @@ class TinyGraph:
 
     def add_vertex(self, props = {}, **kwargs):
         """
-        Add a vertex to a TinyGraph instance. This process can be slow because it
-        requires reshaping the adjacency and property arrays.
+        Add a vertex to a TinyGraph instance. This process can be slow because 
+        it requires reshaping the adjacency and property arrays.
         The new vertex will have the highest index (vert_N - 1).
 
         Inputs:
-             properties are passed as key=value pairs or as a props dictionary
+            properties are passed as key=value pairs or as a props dictionary
                 If a key is not recognized, it will raise an error
                 If a key is missing, the corresponding value will be left as 0
                 for whatever the corresponding dtype is
 
         Outputs:
             None - modifications are made in place.
-
         """
-        # # New Adjacency matrix
-        # # Currently discards the old adjacency matrix entirely
-        # new_adj = np.zeros((self.vert_N+1, self.vert_N+1), dtype=self.adj_type)
-        # new_adj[:self.vert_N, :self.vert_N] = self.adjacency
-        # self.adjacency = new_adj
-
         self.adjacency = np.insert(self.adjacency, self.__vert_N, 0, axis=0)
         self.adjacency = np.insert(self.adjacency, self.__vert_N, 0, axis=1)
 
@@ -301,7 +315,8 @@ class TinyGraph:
         Moves up the vertices after n so that the numbering remains dense.
 
         Inputs:
-            n (int): Vertex to remove. Vertices are indexed numerically 0...vert_N-1.
+            n (int): Vertex to remove. Vertices are indexed numerically 
+                (0...vert_N-1).
 
         Outputs:
             None - modifications are made in place.
@@ -404,7 +419,7 @@ class TinyGraph:
                 name.
 
         Outputs:
-            props (string:prop_type): A dictionary mapping each of the vertex
+            props (str:prop_type): A dictionary mapping each of the vertex
                 property names to the property at the input vertex.
         """
         if vert_props is None:
@@ -425,7 +440,7 @@ class TinyGraph:
                 name.
 
         Outputs:
-            props (string:prop_type): A dictionary mapping each of the edge
+            props (str:prop_type): A dictionary mapping each of the edge
                 property names to the property at the input edge.
         """
         if edge_props is None:
@@ -492,13 +507,13 @@ class TinyGraph:
 
     def edges(self, weight = False, edge_props = None):
         """
-        Get a list of the edges by endpoint vertices, optionally with their weight 
-        and some properties.
+        Get a list of the edges by endpoint vertices, optionally with their 
+        weight and some properties.
 
         Inputs:
             weight (bool): Whether to return the weight of each edge. By default
                 this if false and the weight is not returned.
-            edge_props ([string]): A list of edge properties to return, by name.
+            edge_props ([str]): A list of edge properties to return, by name.
                 By default this is empty and no properties are returned. Must be
                 a list of existing properties.
 
@@ -528,17 +543,18 @@ class TinyGraph:
         Get a list of the vertices with some of their properties.
 
         Inputs:
-            vert_props ([string]): A list of vertex properties to return, by name.
+            vert_props ([str]): A list of vertex properties to return, by name.
                 By default this is empty and an empty map is returned. Must be
                 a list of existing properties.
 
         Outputs:
-            vertices ([vertex]): A list of vertices, where each vertex is represented by a
-                tuple. The first element of the tuple is the vertex index. The 
-                second element is a map from the provided vertex properties to
-                the values at the vertex. Even when no properties are provided, a
-                map is returned, since the list of vertices is simply 0...N-1, 
-                which can be retrieved more efficiently in other ways.
+            vertices ([vertex]): A list of vertices, where each vertex is 
+                represented by a tuple. The first element of the tuple is the 
+                vertex index. The second element is a map from the provided 
+                vertex properties to the values at the vertex. Even when no 
+                properties are provided, a map is returned, since the list of 
+                vertices is simply 0...N-1, which can be retrieved more 
+                efficiently in other ways.
         """
         vertices = []
         for i in range(self.__vert_N):

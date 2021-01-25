@@ -23,20 +23,22 @@ def from_rdkit_mol(mol, use_charge=False, use_chiral=False,
                    other_edge_props={}):
     """
     Create a new tinygraph from a given molecule where the weights 
-    are the corresponding bond orders per RDKit (1, 1.5, 2, 3) as 32-bit floats and 
-    the atomic numbers are a uint8-based vertex property. 
+    are the corresponding bond orders per RDKit (1, 1.5, 2, 3) as 32-bit floats 
+    and the atomic numbers are a uint8-based vertex property. 
 
     Inputs: 
-       mol: rdkit mol, with or without explicit hydrogens
-       use_charge: create a vertex prop for atomic charges named 'charge'
-       use_chiral: create a vertex prop for chiral flags
-                   flags named 'chiral'
-       use_implicit_h: create a vertex prop for implicit hydrogens
-                       flags named 'implicit_h'
-       use_explicit_h: create a vertex prop for explicit hydrogens
-                       flags named 'explicit_h'
+       mol (RDMol): with or without explicit hydrogens.
+       use_charge (bool): whether to create a vertex prop for atomic charges 
+            named 'charge'.
+       use_chiral (bool): create a vertex prop for chiral flags
+            flags named 'chiral'.
+       use_implicit_h (bool): create a vertex prop for implicit hydrogens
+            flags named 'implicit_h'.
+       use_explicit_h (bool): create a vertex prop for explicit hydrogens
+            flags named 'explicit_h'.
     
-    Returns: new TinyGraph
+    Returns: 
+        tg (TinyGraph): new TinyGraph from molecule.
    
     """
 
@@ -86,15 +88,16 @@ def to_rdkit_mol(g, atomicno_prop='atomicno',
     the bond order. 
 
     Inputs: 
-         g: TinyGraph with weights as bond orders
-         atomicno_prop: vertex property to use for atomic numbers 
-                        (default is 'atomicno')
-         charge_prop: vertex property to use for per-atom-charges
-         chiral_prop: vertex property to use for chiral tags
-         explicit_h_prop: vertex property to use for explicit hydrogens
-         sanitize: whether to sanitize the molecule 
+         g (TinyGraph): TinyGraph with weights as bond orders.
+         atomicno_prop (str): vertex property to use for atomic numbers 
+                        (default is 'atomicno').
+         charge_prop (str): vertex property to use for per-atom-charges.
+         chiral_prop (str): vertex property to use for chiral tags.
+         explicit_h_prop (str): vertex property to use for explicit hydrogens.
+         sanitize (bool): whether to sanitize the molecule.
  
-    Retruns: RDMol
+    Retruns: 
+        mol (RDMol): RDMol from TinyGraph.
     """
 
     # check atomicnos are valid

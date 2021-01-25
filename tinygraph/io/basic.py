@@ -4,6 +4,7 @@ import numpy as np
 import networkx
 import tinygraph as tg
 import json
+import warnings
 
 # For slightly cleaner type inference
 import numbers
@@ -14,10 +15,9 @@ def from_nx(ng, adj_type=np.float32,
             vp_types={}, ep_types={},
             raise_error_on_missing_prop=True):
     """
-    Initialize a TinyGraph instance from a networkx graph instance.
-    Grabs only the requested vertex and edge properties;
-    If weight_prop is set, then the adjacency matrix will contain
-      values from edges' `weight` property.
+    Initialize a TinyGraph instance from a networkx graph instance. Grabs only 
+    the requested vertex and edge properties. If weight_prop is set, then the 
+    adjacency matrix will contain values from edges' `weight` property.
 
     Inputs:
         ng (networkx Graph):
@@ -27,8 +27,8 @@ def from_nx(ng, adj_type=np.float32,
             the adjacency type to expect (for TinyGraph creation).
 
         weight_prop:
-            Name of the weight property in the networkx graph (put in adj matrix).
-            If None, value defaults to 1.
+            Name of the weight property in the networkx graph (put in adj 
+            matrix). If None, value defaults to 1.
 
         name_prop:
             vertex property to put the networkx node name into (e.g., 'name').
@@ -42,7 +42,8 @@ def from_nx(ng, adj_type=np.float32,
 
         raise_error_on_missing_prop (bool):
             In case properties aren't found, we raise a KeyError by default.
-            Setting raise_error_on_missing_prop to false would result in quietly filling in values.
+            Setting raise_error_on_missing_prop to false would result in quietly
+            filling in values.
 
     Outputs:
         tg (TinyGraph): TinyGraph instance corresponding to networkx graph.
@@ -68,7 +69,8 @@ def from_nx(ng, adj_type=np.float32,
             if vp in v_prop.keys():
                 g.v[vp][vi] = v_prop[vp]
             elif raise_error_on_missing_prop:
-                raise KeyError(f"Property '{vp}' absent from vertex {v_names[vi]}")
+                raise KeyError(f"Property '{vp}' absent from vertex"
+                               f"{v_names[vi]}")
             # else:
             #     try:
             #         g.v[vp][vi] = tg.default_zero(vp_types[vp])
@@ -94,9 +96,9 @@ def from_nx(ng, adj_type=np.float32,
         # Ignore self-connected edges
         # But if there are multiple edges, maybe just overwrite..
         if v1_num == v2_num:
-            raise ValueError(f"Error: Conversion from networkx graph to tinygraph "
-                             f"failed. Self-connected edge found for vertex "
-                             f"{e_names[ei][0]}.")
+            raise ValueError(f"Error: Conversion from networkx graph to "
+                             f"tinygraph failed. Self-connected edge found for "
+                             f"vertex {e_names[ei][0]}.")
             continue
         # Build adjacency matrix with possibly weighted entries
         if weight_prop is None:
@@ -119,7 +121,8 @@ def from_nx(ng, adj_type=np.float32,
             elif not raise_error_on_missing_prop:
                 eprop = tg.default_zero(ep_types[ep])
             else:
-                raise KeyError(f"Property '{ep}' absent from edge {e_names[ei]}")
+                raise KeyError(f"Property '{ep}' absent from edge"
+                               f"{e_names[ei]}")
             g.e[ep][v1_num, v2_num] = eprop
             g.e[ep][v2_num, v1_num] = eprop
 
@@ -132,21 +135,23 @@ def from_nx(ng, adj_type=np.float32,
 
 def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
     """
-    Get a networkx copy of the current graph.
-    Grabs all the properties it can find and uses the node_names property for node names.
+    Get a networkx copy of the current graph. Grabs all the properties it can 
+    find and uses the node_names property for node names.
 
     Inputs:
         tg (TinyGraph): graph to translate to networkx.
-        weight_prop:
-            key to put the adjacency matrix values into (None to interpret as unweighted)
-        name_prop:
+        weight_prop (str):
+            key to put the adjacency matrix values into (None to interpret as 
+            unweighted).
+        name_prop (str):
             vertex property from g to take as the node name (e.g. 'name').
             If None is supplied, the name will be the vertex number.
-            If an invalid string (not a key of g.v) is passed, a KeyError will be raised
-        vp_subset:
+            If an invalid string (not a key of g.v) is passed, a KeyError will 
+            be raised.
+        vp_subset ([str]):
             Vertex properties to take; None to take all.
             A KeyError will be raised if not all are found.
-        ep_subset:
+        ep_subset ([str]):
             Edge properties to take; None to take all.
             A KeyError will be raised if not all are found.
 
@@ -155,8 +160,9 @@ def to_nx(g, weight_prop=None, name_prop=None, vp_subset=None, ep_subset=None):
     """
     # In case weight_prop is already a property
     if weight_prop in g.e.keys():
-        print("tg_to_nx warning: weight_prop collides with an existing property. "
-              "Will overwrite existing values during conversion!")
+        warnings.warn(f"tg_to_nx warning: weight_prop collides with an existing"
+                      f" property. Will overwrite existing values during"
+                      f"conversion!")
 
     # Make the new network
     ng = networkx.Graph()
@@ -231,10 +237,11 @@ def to_binary(g, fileobj):
     help around attribute names. Note that per-graph properties
     are serialized as a json string. 
     Inputs:
-         tg: TinyGraph
-         fileobj : Python file-like object
+        tg (TinyGraph): TinyGraph instance.
+        fileobj: Python file-like object to save to.
 
-    Returns : None
+    Returns: 
+        None
     """
 
     fields = {'adjacency' : g.adjacency}
@@ -256,9 +263,9 @@ def from_binary(fileobj):
     is minimal sanity checking here for speed.
 
     Input:
-        fileobj : Python file-like object
+        fileobj: Python file-like object to load from.
     Returns:
-        new tinygraph
+        tg (TinyGraph): saved TinyGraph instance
     """
     d = np.load(fileobj)
     adj = d['adjacency']

@@ -132,7 +132,7 @@ Algorithms
 TinyGraph implements its own version of common graph algorithms which are
 efficient on the small, undirected, self-loop free graphs it supports. TinyGraph
 implements its own connected components, minimum cycle detection, and shortest
-path algorithms. For details on all of TinyGraph's algorithms, see the :ref:'api'.
+path algorithms. For details on all of TinyGraph's algorithms, see :ref:`api`.
 
 .. code-block:: python
 

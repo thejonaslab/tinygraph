@@ -25,25 +25,23 @@ def get_min_cycles(tg):
     """
     Determines if a vertex in a graph is part of a cycle, and if so, returns the 
     minimum  sized such cycle (by number of vertices). 
-    ? Do we want to create separate functions or try to extend this to
-    ? get the minimum cycle by weights or some edge/vertex property?
 
     Inputs:
         tg (TinyGraph): graph to find cycles in.
 
     Outputs:
-        cycle ([{int}]): A list of the minimum length cycle (by number of vertices)
-            for each vertex in tg. Cycles are represented by a set of the vertices in
-            the cycle, and the list is order by vertex (cycle[0] is min cycle that
-            includes vertex 0).
+        cycle ([{int}]): A list of the minimum length cycle (by number of 
+            vertices) for each vertex in tg. Cycles are represented by a set of 
+            the vertices in the cycle, and the list is order by vertex (cycle[0]
+            is min cycle that includes vertex 0).
     """
     # Keep track of min cycle for each vertex.
     cycles = []
     for i in range(tg.vert_N):
         cc = set()
         # Create a FIFO queue to keep track of the vertices which are the same 
-        # number of steps from i. Also keep a set which is the vertices on the path 
-        # to that vertices.
+        # number of steps from i. Also keep a set which is the vertices on the 
+        # path to that vertex.
         q = Queue()
         cycle_found = False
         init_path = {i,}
