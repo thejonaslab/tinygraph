@@ -22,7 +22,7 @@ IO operations
 
 Algorithms
 -----------
-.. automodule:: tinygraph.io
+.. automodule:: tinygraph.algorithms
    :members:
 
 
