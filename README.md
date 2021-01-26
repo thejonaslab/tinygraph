@@ -6,9 +6,11 @@ TinyGraph was designed to be extensible and interface well with numpy, but also 
 
 ## Installation
 
-TinyGraph is provided under the [New BSD License](LICENSE). Installation can be done through PyPi with:
+TinyGraph is provided under the [New BSD License](LICENSE). We will eventually make TinyGraph available on PyPI but
+for the time being you can install directly from Github via 
+
 ```
-pip install tinygraph
+pip install git+https://github.com/thejonaslab/tinygraph.git
 ```
 
 ## Documentation

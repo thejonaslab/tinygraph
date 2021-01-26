@@ -4,3 +4,5 @@
 # Just tg.TinyGraph(N)
 from .tinygraph import *
 from . import io, algorithms, util
+
+from .version import __version__

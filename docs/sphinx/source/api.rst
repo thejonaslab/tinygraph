@@ -22,8 +22,8 @@ IO operations
 
 Algorithms
 -----------
-.. automodule:: tinygraph.io
-   :members:
+.. automodule:: tinygraph.algorithms
+   :members: get_shortest_paths, get_connected_components, get_min_cycles, is_connected
 
 
 Utilities

@@ -4,7 +4,11 @@ from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy
 
-__version__ = '0.1'
+# get the version information
+version_dict = {}
+with open("tinygraph/version.py") as fp:
+    exec(fp.read(), version_dict)
+__version__ = version_dict['__version__']
 
 COMPILE_ARGS = ["-O3", '-std=c++17', '-g',  
                 '-fno-omit-frame-pointer', '-fPIC', '-g3', ]
