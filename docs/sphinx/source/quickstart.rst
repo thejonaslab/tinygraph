@@ -11,7 +11,7 @@ in order to get the most out of TinyGraph. Networkx is also useful as it
 interfaces well with TinyGraph and has additional features.
 
 Basic functionality
-----------------------------
+-------------------
 
 Setting up a graph can be done simply by initializing the number of vertices in
 the graph. By default, edge weights are floats, and can be assigned as shown here.
@@ -74,7 +74,7 @@ adding or removing vertices, edge properties or vertex properties. Edges can be
 removed by setting their weight to 0.
 
 Working with Networkx
-----------------------------
+---------------------
 
 Networkx has an extensive library of graph functions, including for generating
 and displaying graphs. TinyGraph provides easy interface with networkx to take
@@ -107,7 +107,7 @@ networkx and TinyGraph accurately.
     assert tg.io.to_nx(g, name_prop='name').nodes.data() == ng.nodes.data()
 
 Working with RDKit
-----------------------------
+-------------------
 
 TinyGraph was developed with the intention of being used as a way to perform
 graph algorithms on molecules. We therefore provide easy interfacing with RDKit,
@@ -127,7 +127,7 @@ including to and from the RDKit molecules.
     new_smiles = Chem.MolToSmiles(new_mol)
 
 Algorithms
-----------------------------
+-----------
 
 TinyGraph implements its own version of common graph algorithms which are
 efficient on the small, undirected, self-loop free graphs it supports. TinyGraph
@@ -163,7 +163,7 @@ path algorithms. For details on all of TinyGraph's algorithms, see :ref:`api`.
     print(sp_w[0][5])
 
 Saving and Loading TinyGraphs
-----------------------------
+-----------------------------
 
 TinyGraph has functions for saving and loading graphs to and from binary. The
 expectation is that there may be datasets containing millions of graphs.
@@ -181,7 +181,7 @@ saving and loading.
     g2 = tg.io.from_binary(inbuf)
 
 Extra Utilities
-----------------------------
+---------------
 
 Lastly, TinyGraph provides graph utility functions for ease of use. This includes
 graph equality, permuting graphs, taking subgraphs and merging graphs.
