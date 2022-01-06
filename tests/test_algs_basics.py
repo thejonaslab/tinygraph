@@ -44,29 +44,29 @@ def test_cc_multi_comp():
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
     assert algs.is_connected(g) == False
 
-# @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
-# def test_random(test_name):
-#     """
-#     Test randomly generated graphs against networkx algorithms.
-#     """
-#     for g in suite[test_name]:
+@pytest.mark.parametrize("test_name", [k for k in suite.keys()])
+def test_random(test_name):
+    """
+    Test randomly generated graphs against networkx algorithms.
+    """
+    for g in suite[test_name]:
 
-#         tg_cc = algs.get_connected_components(g)
-#         tg_sp = algs.get_shortest_paths(g,False)
+        tg_cc = algs.get_connected_components(g)
+        tg_sp = algs.get_shortest_paths(g,False)
 
-#         nx_g = to_nx(g, weight_prop = "weight")
-#         nx_cc = nx.connected_components(nx_g)
-#         nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
+        nx_g = to_nx(g, weight_prop = "weight")
+        nx_cc = nx.connected_components(nx_g)
+        nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
         
-#         for cc in nx_cc:
-#             assert cc in tg_cc
+        for cc in nx_cc:
+            assert cc in tg_cc
 
-#         for i in range(g.vert_N):
-#             for j in range(g.vert_N):
-#                 if not j in nx_sp[i]:
-#                     assert tg_sp[i][j] == np.inf
-#                 else:
-#                     assert tg_sp[i][j] == nx_sp[i][j]
+        for i in range(g.vert_N):
+            for j in range(g.vert_N):
+                if not j in nx_sp[i]:
+                    assert tg_sp[i][j] == np.inf
+                else:
+                    assert tg_sp[i][j] == nx_sp[i][j]
 
 def test_cycles_empty():
     """
