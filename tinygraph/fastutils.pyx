@@ -148,21 +148,21 @@ cpdef get_connected_components(tg):
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-cdef (np.float64_t[:,:], np.float64_t[:,:]) floyd_warshall(np.float64_t[:,:] distances, np.float64_t[:,:] next, int n):
+cdef np.float64_t[:,:,:] floyd_warshall(np.float64_t[:,:,:] distances, int n):
     cdef double newL = 0
     for k in range(n):
         for j in range(n):
             for i in range(n):
-                newL = distances[i][k] + distances[k][j]
-                if distances[i][j] > newL:
-                    distances[i][j] = newL
-                    next[i][j] = next[i][k]
-    return (distances, next)
+                newL = distances[0][i][k] + distances[0][k][j]
+                if distances[0][i][j] > newL:
+                    distances[0][i][j] = newL
+                    distances[1][i][j] = distances[1][i][k]
+    return distances
 
 cpdef _floyd_warshall(d, n):
     return floyd_warshall(d, n)
 
-cpdef get_shortest_paths(tg, weighted, paths=False):
+def get_shortest_paths(tg, weighted, paths=False):
     """
     Get the distance from each vertex to each other vertex on the shortest path. 
     Uses Floyd-Warshall to calculate the distances of the shortest paths.
@@ -174,6 +174,11 @@ cpdef get_shortest_paths(tg, weighted, paths=False):
             distance of a path is calculated by the sum of the weights on the 
             path. If false, the distance is calculated by the number of vertices on
             the path.
+        paths (bool): Whether to also return the matrix of next steps in the paths,
+            which is an NxN matrix describing which node to move to next to take 
+            the shortest path from the current node to the target node. This can
+            be used to reconstruct the path that is the shortest path between two
+            nodes.
 
     Outputs:
         distances ([[int]]): A list of the distance to each vertex. The lists are
@@ -183,7 +188,12 @@ cpdef get_shortest_paths(tg, weighted, paths=False):
             distance from vertex 2 to itself). If no path exists between the 
             vertices, the result is None.
     """
-    next = np.array([[j for j in range(tg.vert_N)] for _ in range(tg.vert_N)])
+    return _get_shortest_paths(tg, weighted, paths)
+
+cpdef _get_shortest_paths(tg, weighted, paths):
+    next = np.ones_like(tg.adjacency, dtype = np.float64)
+    for i in range(tg.vert_N):
+        next[i, :] = np.arange(tg.vert_N)
     if not weighted:
         distances = np.ones_like(tg.adjacency, dtype = np.float64)
         distances[tg.adjacency == tinygraph.default_zero(tg.adjacency.dtype)] = np.inf
@@ -197,11 +207,12 @@ cpdef get_shortest_paths(tg, weighted, paths=False):
         next[tg.adjacency == 0] = np.inf
         np.fill_diagonal(distances, 0)
     np.fill_diagonal(next, range(tg.vert_N))
-    distances, next = np.array(floyd_warshall(distances, next, tg.vert_N))
+    tracking = np.stack((distances, next))
+    tracking = np.array(floyd_warshall(tracking, tg.vert_N))
     for i in range(tg.vert_N):
-        if distances[i][i] < 0:
+        if tracking[0][i][i] < 0:
             raise Exception("Graph has a negative cycle.")
     if paths:
-        return distances, next
+        return tracking[0,:,:], tracking[1,:,:]
     else:
-        return distances
+        return tracking[0,:,:]
