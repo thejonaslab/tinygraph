@@ -64,7 +64,7 @@ commands:
 jobs:
   build-and-test:
     executor: python/default
-    resource_class: medium+
+    resource_class: large
     steps:
       - checkout
       - preinstall
