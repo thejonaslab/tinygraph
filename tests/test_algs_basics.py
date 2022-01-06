@@ -130,6 +130,7 @@ def test_paths_fully_connected():
     """
     Test shortest paths on a fully connected graph.
     """
+    print("Fully connected")
     g = tg.TinyGraph(5)
     g[0,1] = 1
     g[1,2] = 1
@@ -143,6 +144,33 @@ def test_paths_fully_connected():
                                                 [2,1,0,1,2],\
                                                 [2,2,1,0,1],\
                                                 [1,2,2,1,0]],dtype=np.float64))
+
+def test_paths_fully_connected_with_path():
+    """
+    Test shortest paths on a fully connected graph.
+    """
+    g = tg.TinyGraph(5)
+    g[0,1] = 1
+    g[1,2] = 1
+    g[2,3] = 1
+    g[3,4] = 1
+    g[4,0] = 1
+
+    dists, paths = algs.get_shortest_paths(g,True,True)
+
+    np.testing.assert_equal(dists,\
+                            np.array([[0,1,2,2,1],\
+                                    [1,0,1,2,2],\
+                                    [2,1,0,1,2],\
+                                    [2,2,1,0,1],\
+                                    [1,2,2,1,0]],dtype=np.float64))
+
+    np.testing.assert_equal(paths,\
+                            np.array([[0,1,1,4,4],\
+                                    [0,1,2,2,0],\
+                                    [1,1,2,3,3],\
+                                    [4,2,2,3,4],\
+                                    [0,0,3,3,4]],dtype=np.float64))
 
 def test_paths_disjointed():
     """

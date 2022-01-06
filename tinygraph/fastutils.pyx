@@ -148,7 +148,7 @@ cpdef get_connected_components(tg):
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
-cdef np.float64_t[:,:] floyd_warshall(np.float64_t[:,:] distances, int n):
+cdef (np.float64_t[:,:], np.float64_t[:,:]) floyd_warshall(np.float64_t[:,:] distances, np.float64_t[:,:] next, int n):
     cdef double newL = 0
     for k in range(n):
         for j in range(n):
@@ -156,12 +156,13 @@ cdef np.float64_t[:,:] floyd_warshall(np.float64_t[:,:] distances, int n):
                 newL = distances[i][k] + distances[k][j]
                 if distances[i][j] > newL:
                     distances[i][j] = newL
-    return distances
+                    next[i][j] = next[i][k]
+    return (distances, next)
 
 cpdef _floyd_warshall(d, n):
     return floyd_warshall(d, n)
 
-cpdef get_shortest_paths(tg, weighted):
+cpdef get_shortest_paths(tg, weighted, paths=False):
     """
     Get the distance from each vertex to each other vertex on the shortest path. 
     Uses Floyd-Warshall to calculate the distances of the shortest paths.
@@ -182,18 +183,25 @@ cpdef get_shortest_paths(tg, weighted):
             distance from vertex 2 to itself). If no path exists between the 
             vertices, the result is None.
     """
+    next = np.array([[j for j in range(tg.vert_N)] for _ in range(tg.vert_N)])
     if not weighted:
         distances = np.ones_like(tg.adjacency, dtype = np.float64)
         distances[tg.adjacency == tinygraph.default_zero(tg.adjacency.dtype)] = np.inf
-        distances[np.eye(tg.vert_N) == 1] = 0
+        next[tg.adjacency == tinygraph.default_zero(tg.adjacency.dtype)] = np.inf
+        np.fill_diagonal(distances, 0)
     elif not np.issubdtype(tg.adjacency.dtype, np.number):
         raise TypeError("Graph weights are not numbers.")
     else:
         distances = np.array(tg.adjacency,dtype=np.float64,copy=True)
         distances[tg.adjacency == 0] = np.inf
-        distances[np.eye(tg.vert_N) == 1] = 0
-    distances = np.array(floyd_warshall(distances, tg.vert_N))
+        next[tg.adjacency == 0] = np.inf
+        np.fill_diagonal(distances, 0)
+    np.fill_diagonal(next, range(tg.vert_N))
+    distances, next = np.array(floyd_warshall(distances, next, tg.vert_N))
     for i in range(tg.vert_N):
         if distances[i][i] < 0:
             raise Exception("Graph has a negative cycle.")
-    return distances
+    if paths:
+        return distances, next
+    else:
+        return distances
