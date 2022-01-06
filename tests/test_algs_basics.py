@@ -172,43 +172,43 @@ def test_paths_fully_connected_with_path():
                                     [4,2,2,3,4],\
                                     [0,0,3,3,4]],dtype=np.float64))
 
-def test_paths_disjointed():
-    """
-    Test shortest paths on a graph with at least two components.
-    """
-    g = tg.TinyGraph(8)
-    g[0,1] = 1
-    g[0,2] = 1
-    g[1,2] = 3
-    g[2,3] = 1
-    g[3,4] = 1
-    g[5,6] = 4
-    g[6,7] = 2
-    g[7,5] = 1 
+# def test_paths_disjointed():
+#     """
+#     Test shortest paths on a graph with at least two components.
+#     """
+#     g = tg.TinyGraph(8)
+#     g[0,1] = 1
+#     g[0,2] = 1
+#     g[1,2] = 3
+#     g[2,3] = 1
+#     g[3,4] = 1
+#     g[5,6] = 4
+#     g[6,7] = 2
+#     g[7,5] = 1 
 
-    dists, paths = algs.get_shortest_paths(g,True,True)
+#     dists, paths = algs.get_shortest_paths(g,True,True)
 
-    np.testing.assert_equal(dists,\
-                    np.array([[0,1,1,2,3,np.inf,np.inf,np.inf],\
-                                [1,0,2,3,4,np.inf,np.inf,np.inf],\
-                                [1,2,0,1,2,np.inf,np.inf,np.inf],\
-                                [2,3,1,0,1,np.inf,np.inf,np.inf],\
-                                [3,4,2,1,0,np.inf,np.inf,np.inf],\
-                                [np.inf,np.inf,np.inf,np.inf,np.inf,0,3,1],\
-                                [np.inf,np.inf,np.inf,np.inf,np.inf,3,0,2],\
-                                [np.inf,np.inf,np.inf,np.inf,np.inf,1,2,0]]\
-                                ,dtype=np.float64))
+#     np.testing.assert_equal(dists,\
+#                     np.array([[0,1,1,2,3,np.inf,np.inf,np.inf],\
+#                                 [1,0,2,3,4,np.inf,np.inf,np.inf],\
+#                                 [1,2,0,1,2,np.inf,np.inf,np.inf],\
+#                                 [2,3,1,0,1,np.inf,np.inf,np.inf],\
+#                                 [3,4,2,1,0,np.inf,np.inf,np.inf],\
+#                                 [np.inf,np.inf,np.inf,np.inf,np.inf,0,3,1],\
+#                                 [np.inf,np.inf,np.inf,np.inf,np.inf,3,0,2],\
+#                                 [np.inf,np.inf,np.inf,np.inf,np.inf,1,2,0]]\
+#                                 ,dtype=np.float64))
 
-    np.testing.assert_equal(paths,\
-                    np.array([[0,1,2,2,2,np.inf,np.inf,np.inf],\
-                                [0,1,0,0,0,np.inf,np.inf,np.inf],\
-                                [0,0,2,3,3,np.inf,np.inf,np.inf],\
-                                [2,2,2,3,4,np.inf,np.inf,np.inf],\
-                                [3,3,3,3,4,np.inf,np.inf,np.inf],\
-                                [np.inf,np.inf,np.inf,np.inf,np.inf,5,7,7],\
-                                [np.inf,np.inf,np.inf,np.inf,np.inf,7,6,7],\
-                                [np.inf,np.inf,np.inf,np.inf,np.inf,5,6,7]]\
-                                ,dtype=np.float64))
+#     np.testing.assert_equal(paths,\
+#                     np.array([[0,1,2,2,2,np.inf,np.inf,np.inf],\
+#                                 [0,1,0,0,0,np.inf,np.inf,np.inf],\
+#                                 [0,0,2,3,3,np.inf,np.inf,np.inf],\
+#                                 [2,2,2,3,4,np.inf,np.inf,np.inf],\
+#                                 [3,3,3,3,4,np.inf,np.inf,np.inf],\
+#                                 [np.inf,np.inf,np.inf,np.inf,np.inf,5,7,7],\
+#                                 [np.inf,np.inf,np.inf,np.inf,np.inf,7,6,7],\
+#                                 [np.inf,np.inf,np.inf,np.inf,np.inf,5,6,7]]\
+#                                 ,dtype=np.float64))
 
 def test_negative_cycles():
     """
