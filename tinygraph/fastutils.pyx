@@ -216,3 +216,40 @@ cpdef _get_shortest_paths(tg, weighted, paths):
         return tracking[0,:,:], tracking[1,:,:]
     else:
         return tracking[0,:,:]
+
+def construct_all_shortest_paths(next):
+    """
+    Given the next matrix from the Floyd-Warshall shortest paths algorithm,
+    construct the sequence of nodes that comprises the shortest path
+    between two nodes for all nodes.
+
+    Inputs:
+        next (np array): NxN matrix giving the next step to get from node i 
+            to node j, as described in the get_shortest_paths algorithm.
+
+    Ouputs:
+        paths ([[[int]]]): A numpy array representing the paths between 
+            any two nodes, i and j, by the nodes on the path in order,
+            including both i and j. After reaching j, all values are
+            np.inf. If i and j are not connected, all values are np.inf.
+    """
+    n = next.shape[0]
+    paths = np.full((n,n,n), np.inf)
+    return _construct_all_shortest_paths(paths, next)
+
+@cython.boundscheck(False)  # Deactivate bounds checking
+@cython.wraparound(False)   # Deactivate negative indexing.
+cdef np.float64_t[:,:,:] _construct_all_shortest_paths(np.float64_t[:,:,:] paths, np.float64_t[:,:] next):
+    cdef int N = next.shape[0]
+    cdef int loc = 0
+    for i in range(N):
+        for j in range(N):
+            if not next[i,j] == np.inf: 
+                loc = i
+                for k in range(N):
+                    paths[i,j,k] = loc
+                    if loc == j:
+                        break
+                    else:
+                        loc = int(next[loc,j])
+    return paths

@@ -44,6 +44,7 @@ def test_cc_multi_comp():
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
     assert algs.is_connected(g) == False
 
+# @profile
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_random(test_name):
     """
@@ -52,21 +53,31 @@ def test_random(test_name):
     for g in suite[test_name]:
 
         tg_cc = algs.get_connected_components(g)
-        tg_sp = algs.get_shortest_paths(g,False)
+        tg_sp, next = algs.get_shortest_paths(g,False,True)
+        tg_sp_p = algs.construct_all_shortest_paths(next)
 
         nx_g = to_nx(g, weight_prop = "weight")
         nx_cc = nx.connected_components(nx_g)
         nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
         
+        print(tg_sp)
+        print(next)
+        print([[[v for v in col] for col in row] for row in tg_sp_p])
+
         for cc in nx_cc:
             assert cc in tg_cc
 
         for i in range(g.vert_N):
             for j in range(g.vert_N):
+                p = np.sum(np.isinf(tg_sp_p[i][j][:]))
+                print(p)
+                l = tg_sp[i][j]
                 if not j in nx_sp[i]:
-                    assert tg_sp[i][j] == np.inf
+                    assert l == np.inf
+                    assert p - 1 == -1
                 else:
-                    assert tg_sp[i][j] == nx_sp[i][j]
+                    assert l == nx_sp[i][j]
+                    assert l == p - 1
 
 def test_cycles_empty():
     """
@@ -156,7 +167,11 @@ def test_paths_fully_connected_with_path():
     g[3,4] = 1
     g[4,0] = 1
 
-    dists, paths = algs.get_shortest_paths(g,True,True)
+    dists, next = algs.get_shortest_paths(g,True,True)
+    paths = algs.construct_all_shortest_paths(next)
+    for i in paths:
+        for j in i:
+            print(list(j))
 
     np.testing.assert_equal(dists,\
                             np.array([[0,1,2,2,1],\
@@ -165,12 +180,39 @@ def test_paths_fully_connected_with_path():
                                     [2,2,1,0,1],\
                                     [1,2,2,1,0]],dtype=np.float64))
 
-    np.testing.assert_equal(paths,\
+    np.testing.assert_equal(next,\
                             np.array([[0,1,1,4,4],\
                                     [0,1,2,2,0],\
                                     [1,1,2,3,3],\
                                     [4,2,2,3,4],\
                                     [0,0,3,3,4]],dtype=np.float64))
+
+    np.testing.assert_equal(paths,\
+                            np.array([[[0,np.inf,np.inf,np.inf,np.inf],\
+                                    [0,1,np.inf,np.inf,np.inf],\
+                                    [0,1,2,np.inf,np.inf],\
+                                    [0,4,3,np.inf,np.inf],\
+                                    [0,4,np.inf,np.inf,np.inf]],\
+                                    [[1,0,np.inf,np.inf,np.inf],\
+                                    [1,np.inf,np.inf,np.inf,np.inf],\
+                                    [1,2,np.inf,np.inf,np.inf],\
+                                    [1,2,3,np.inf,np.inf],\
+                                    [1,0,4,np.inf,np.inf]],\
+                                    [[2,1,0,np.inf,np.inf],\
+                                    [2,1,np.inf,np.inf,np.inf],\
+                                    [2,np.inf,np.inf,np.inf,np.inf],\
+                                    [2,3,np.inf,np.inf,np.inf],\
+                                    [2,3,4,np.inf,np.inf]],\
+                                    [[3,4,0,np.inf,np.inf],\
+                                    [3,2,1,np.inf,np.inf],\
+                                    [3,2,np.inf,np.inf,np.inf],\
+                                    [3,np.inf,np.inf,np.inf,np.inf],\
+                                    [3,4,np.inf,np.inf,np.inf]],\
+                                    [[4,0,np.inf,np.inf,np.inf],\
+                                    [4,0,1,np.inf,np.inf],\
+                                    [4,3,2,np.inf,np.inf],\
+                                    [4,3,np.inf,np.inf,np.inf],\
+                                    [4,np.inf,np.inf,np.inf,np.inf]]],dtype=np.float64))
 
 def test_paths_disjointed():
     """
