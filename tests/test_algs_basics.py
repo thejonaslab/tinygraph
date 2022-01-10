@@ -44,7 +44,7 @@ def test_cc_multi_comp():
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
     assert algs.is_connected(g) == False
 
-@profile
+# @profile
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_random(test_name):
     """
