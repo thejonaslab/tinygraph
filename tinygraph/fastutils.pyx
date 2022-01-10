@@ -235,7 +235,7 @@ def construct_all_shortest_paths(next):
     """
     n = next.shape[0]
     paths = np.full((n,n,n), np.inf)
-    return _construct_all_shortest_paths(paths, next)
+    return np.array(_construct_all_shortest_paths(paths, next))
 
 @cython.boundscheck(False)  # Deactivate bounds checking
 @cython.wraparound(False)   # Deactivate negative indexing.
@@ -244,12 +244,12 @@ cdef np.float64_t[:,:,:] _construct_all_shortest_paths(np.float64_t[:,:,:] paths
     cdef int loc = 0
     for i in range(N):
         for j in range(N):
-            if not next[i,j] == np.inf: 
+            if not next[i][j] == np.inf: 
                 loc = i
                 for k in range(N):
-                    paths[i,j,k] = loc
+                    paths[i][j][k] = loc
                     if loc == j:
                         break
                     else:
-                        loc = int(next[loc,j])
+                        loc = int(next[loc][j])
     return paths

@@ -44,7 +44,7 @@ def test_cc_multi_comp():
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
     assert algs.is_connected(g) == False
 
-# @profile
+@profile
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_random(test_name):
     """
@@ -60,17 +60,14 @@ def test_random(test_name):
         nx_cc = nx.connected_components(nx_g)
         nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
         
-        print(tg_sp)
-        print(next)
-        print([[[v for v in col] for col in row] for row in tg_sp_p])
+        ps = tg_sp_p < float('inf')
 
         for cc in nx_cc:
             assert cc in tg_cc
 
         for i in range(g.vert_N):
             for j in range(g.vert_N):
-                p = np.sum(np.isinf(tg_sp_p[i][j][:]))
-                print(p)
+                p = np.sum(ps[i][j])
                 l = tg_sp[i][j]
                 if not j in nx_sp[i]:
                     assert l == np.inf
