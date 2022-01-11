@@ -44,7 +44,6 @@ def test_cc_multi_comp():
     assert algs.get_connected_components(g) == [set(range(3)),set(range(3,6))]
     assert algs.is_connected(g) == False
 
-# @profile
 @pytest.mark.parametrize("test_name", [k for k in suite.keys()])
 def test_random(test_name):
     """
@@ -53,28 +52,43 @@ def test_random(test_name):
     for g in suite[test_name]:
 
         tg_cc = algs.get_connected_components(g)
-        tg_sp, next = algs.get_shortest_paths(g,False,True)
-        tg_sp_p = algs.construct_all_shortest_paths(next)
+        tg_sp = algs.get_shortest_paths(g,False,False)
 
         nx_g = to_nx(g, weight_prop = "weight")
         nx_cc = nx.connected_components(nx_g)
         nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
-        
-        ps = tg_sp_p < float('inf')
 
         for cc in nx_cc:
             assert cc in tg_cc
 
         for i in range(g.vert_N):
             for j in range(g.vert_N):
-                p = np.sum(ps[i][j])
                 l = tg_sp[i][j]
                 if not j in nx_sp[i]:
                     assert l == np.inf
-                    assert p - 1 == -1
                 else:
                     assert l == nx_sp[i][j]
-                    assert l == p - 1
+
+def test_nx_paths():
+    """
+    Check that our shortest paths match those from networkx.
+    """
+    for nx_g in [nx.generators.classic.balanced_tree(i, j) for (i, j) in zip(range(2,6), range(1,10))]:
+        nx_sp = dict(nx.all_pairs_shortest_path(nx_g))
+
+        g = tg.io.from_nx(nx_g)
+        tg_sp, next = algs.get_shortest_paths(g,False,True)
+        tg_sp_p = algs.construct_all_shortest_paths(next)
+
+        for i in range(g.vert_N):
+            for j in range(g.vert_N):
+                if not j in nx_sp[i]:
+                    assert np.all(tg_sp_p[i][j] == np.inf)
+                else:
+                    for k, node in enumerate(nx_sp[i][j]):
+                        assert node == tg_sp_p[i][j][k]
+
+
 
 def test_cycles_empty():
     """
