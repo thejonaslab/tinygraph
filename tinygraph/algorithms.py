@@ -8,6 +8,7 @@ import numpy as np
 
 from tinygraph.fastutils import get_connected_components
 from tinygraph.fastutils import get_shortest_paths
+from tinygraph.fastutils import construct_all_shortest_paths
 
 def is_connected(tg):
     """
