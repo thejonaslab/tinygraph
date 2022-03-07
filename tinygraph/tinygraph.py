@@ -33,7 +33,7 @@ def default_one(dtype):
     Outputs:
         def_one (dtype): Default one value of given dtype.
     """
-    if dtype == np.bool:
+    if dtype == np.bool_ or dtype == bool:
         return True
     elif np.issubdtype(dtype, np.number):
         return 1
