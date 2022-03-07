@@ -32,6 +32,6 @@ setup(
     #     'Cython>=0.29.21',
     #     'numpy>=1.19.2',
     # ],
-    ext_modules = cythonize(extensions),
+    ext_modules = cythonize(extensions, language_level = "3"),
     include_package_data=True,
 )

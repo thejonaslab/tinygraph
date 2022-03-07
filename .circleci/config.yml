@@ -64,6 +64,7 @@ commands:
 jobs:
   build-and-test:
     executor: python/default
+    resource_class: xlarge
     steps:
       - checkout
       - preinstall

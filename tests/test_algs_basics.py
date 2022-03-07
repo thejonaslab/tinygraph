@@ -52,21 +52,43 @@ def test_random(test_name):
     for g in suite[test_name]:
 
         tg_cc = algs.get_connected_components(g)
-        tg_sp = algs.get_shortest_paths(g,False)
+        tg_sp = algs.get_shortest_paths(g,False,False)
 
         nx_g = to_nx(g, weight_prop = "weight")
         nx_cc = nx.connected_components(nx_g)
         nx_sp = dict(nx.all_pairs_shortest_path_length(nx_g))
-        
+
         for cc in nx_cc:
             assert cc in tg_cc
 
         for i in range(g.vert_N):
             for j in range(g.vert_N):
+                l = tg_sp[i][j]
                 if not j in nx_sp[i]:
-                    assert tg_sp[i][j] == np.inf
+                    assert l == np.inf
                 else:
-                    assert tg_sp[i][j] == nx_sp[i][j]
+                    assert l == nx_sp[i][j]
+
+def test_nx_paths():
+    """
+    Check that our shortest paths match those from networkx.
+    """
+    for nx_g in [nx.generators.classic.balanced_tree(i, j) for (i, j) in zip(range(2,6), range(1,10))]:
+        nx_sp = dict(nx.all_pairs_shortest_path(nx_g))
+
+        g = tg.io.from_nx(nx_g)
+        tg_sp, next = algs.get_shortest_paths(g,False,True)
+        tg_sp_p = algs.construct_all_shortest_paths(next)
+
+        for i in range(g.vert_N):
+            for j in range(g.vert_N):
+                if not j in nx_sp[i]:
+                    assert np.all(tg_sp_p[i][j] == np.inf)
+                else:
+                    for k, node in enumerate(nx_sp[i][j]):
+                        assert node == tg_sp_p[i][j][k]
+
+
 
 def test_cycles_empty():
     """
@@ -130,6 +152,7 @@ def test_paths_fully_connected():
     """
     Test shortest paths on a fully connected graph.
     """
+    print("Fully connected")
     g = tg.TinyGraph(5)
     g[0,1] = 1
     g[1,2] = 1
@@ -144,6 +167,64 @@ def test_paths_fully_connected():
                                                 [2,2,1,0,1],\
                                                 [1,2,2,1,0]],dtype=np.float64))
 
+def test_paths_fully_connected_with_path():
+    """
+    Test shortest paths on a fully connected graph.
+    """
+    g = tg.TinyGraph(5)
+    g[0,1] = 1
+    g[1,2] = 1
+    g[2,3] = 1
+    g[3,4] = 1
+    g[4,0] = 1
+
+    dists, next = algs.get_shortest_paths(g,True,True)
+    paths = algs.construct_all_shortest_paths(next)
+    for i in paths:
+        for j in i:
+            print(list(j))
+
+    np.testing.assert_equal(dists,\
+                            np.array([[0,1,2,2,1],\
+                                    [1,0,1,2,2],\
+                                    [2,1,0,1,2],\
+                                    [2,2,1,0,1],\
+                                    [1,2,2,1,0]],dtype=np.float64))
+
+    np.testing.assert_equal(next,\
+                            np.array([[0,1,1,4,4],\
+                                    [0,1,2,2,0],\
+                                    [1,1,2,3,3],\
+                                    [4,2,2,3,4],\
+                                    [0,0,3,3,4]],dtype=np.float64))
+
+    np.testing.assert_equal(paths,\
+                            np.array([[[0,np.inf,np.inf,np.inf,np.inf],\
+                                    [0,1,np.inf,np.inf,np.inf],\
+                                    [0,1,2,np.inf,np.inf],\
+                                    [0,4,3,np.inf,np.inf],\
+                                    [0,4,np.inf,np.inf,np.inf]],\
+                                    [[1,0,np.inf,np.inf,np.inf],\
+                                    [1,np.inf,np.inf,np.inf,np.inf],\
+                                    [1,2,np.inf,np.inf,np.inf],\
+                                    [1,2,3,np.inf,np.inf],\
+                                    [1,0,4,np.inf,np.inf]],\
+                                    [[2,1,0,np.inf,np.inf],\
+                                    [2,1,np.inf,np.inf,np.inf],\
+                                    [2,np.inf,np.inf,np.inf,np.inf],\
+                                    [2,3,np.inf,np.inf,np.inf],\
+                                    [2,3,4,np.inf,np.inf]],\
+                                    [[3,4,0,np.inf,np.inf],\
+                                    [3,2,1,np.inf,np.inf],\
+                                    [3,2,np.inf,np.inf,np.inf],\
+                                    [3,np.inf,np.inf,np.inf,np.inf],\
+                                    [3,4,np.inf,np.inf,np.inf]],\
+                                    [[4,0,np.inf,np.inf,np.inf],\
+                                    [4,0,1,np.inf,np.inf],\
+                                    [4,3,2,np.inf,np.inf],\
+                                    [4,3,np.inf,np.inf,np.inf],\
+                                    [4,np.inf,np.inf,np.inf,np.inf]]],dtype=np.float64))
+
 def test_paths_disjointed():
     """
     Test shortest paths on a graph with at least two components.
@@ -154,13 +235,13 @@ def test_paths_disjointed():
     g[1,2] = 3
     g[2,3] = 1
     g[3,4] = 1
-    g[5,6] = 3
+    g[5,6] = 4
     g[6,7] = 2
     g[7,5] = 1 
 
-    print(algs.get_shortest_paths(g,True))
+    dists, paths = algs.get_shortest_paths(g,True,True)
 
-    np.testing.assert_equal(algs.get_shortest_paths(g,True),\
+    np.testing.assert_equal(dists,\
                     np.array([[0,1,1,2,3,np.inf,np.inf,np.inf],\
                                 [1,0,2,3,4,np.inf,np.inf,np.inf],\
                                 [1,2,0,1,2,np.inf,np.inf,np.inf],\
@@ -169,6 +250,17 @@ def test_paths_disjointed():
                                 [np.inf,np.inf,np.inf,np.inf,np.inf,0,3,1],\
                                 [np.inf,np.inf,np.inf,np.inf,np.inf,3,0,2],\
                                 [np.inf,np.inf,np.inf,np.inf,np.inf,1,2,0]]\
+                                ,dtype=np.float64))
+
+    np.testing.assert_equal(paths,\
+                    np.array([[0,1,2,2,2,np.inf,np.inf,np.inf],\
+                                [0,1,0,0,0,np.inf,np.inf,np.inf],\
+                                [0,0,2,3,3,np.inf,np.inf,np.inf],\
+                                [2,2,2,3,4,np.inf,np.inf,np.inf],\
+                                [3,3,3,3,4,np.inf,np.inf,np.inf],\
+                                [np.inf,np.inf,np.inf,np.inf,np.inf,5,7,7],\
+                                [np.inf,np.inf,np.inf,np.inf,np.inf,7,6,7],\
+                                [np.inf,np.inf,np.inf,np.inf,np.inf,5,6,7]]\
                                 ,dtype=np.float64))
 
 def test_negative_cycles():
