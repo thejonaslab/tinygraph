@@ -12,7 +12,7 @@ def default_zero(dtype):
     Outputs:
         def_zero (dtype): Default zero value of given dtype.
     """
-    if dtype == np.bool:
+    if dtype == np.bool_ or dtype == bool:
         return False
     elif np.issubdtype(dtype, np.number):
         return 0
