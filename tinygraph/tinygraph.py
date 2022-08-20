@@ -110,7 +110,15 @@ class EdgeProxy:
             if self.__g[e1, e2] == default_zero(self.dtype):
                 raise IndexError("No such edge.")
             else:
-                return self.__g.e_p[self.__prop][e1, e2]        
+                return self.__g.e_p[self.__prop][e1, e2]
+
+    def _assign_from_array(self, val):
+        """
+        assign from array, for serialization
+        """
+        assert self.__g.e_p[self.__prop].dtype == val.dtype
+        self.__g.e_p[self.__prop][:, :] = val
+        
 
 class EdgeProxyGenerator:
     """

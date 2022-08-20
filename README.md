@@ -1,5 +1,7 @@
 # TinyGraph
 
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/thejonaslab/tinygraph/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/thejonaslab/tinygraph/tree/main)
+
 TinyGraph is a Python package for working on weighted, undirected graphs with no self-loops. TinyGraph was intended for use with small graphs (<128 vertices).
 
 TinyGraph was designed to be extensible and interface well with numpy, but also fast and supportive of dense graphs for use in ML applications. 
