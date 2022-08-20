@@ -293,7 +293,7 @@ def from_binary(fileobj):
     for k, v in vp.items():
         g.v[k][:] = v
     for k, v in ep.items():
-        g.e[k][:] = v
+        g.e[k]._assign_from_array(v)
 
     g.props = props
 

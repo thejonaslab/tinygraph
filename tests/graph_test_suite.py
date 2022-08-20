@@ -68,7 +68,7 @@ def add_random_ep(g, dt, rng=None):
         rng = np.random.RandomState()
 
     name = "prop" + str(rng.randint(1000000))
-    g.add_vert_prop(name, dt)
+    g.add_edge_prop(name, dt)
 
     for i in range(g.vert_N):
         for j in range(i +1, g.vert_N):
@@ -189,7 +189,8 @@ def create_suite_edge_prop(seed=0):
     for k, v in suite.items():
         for g in v:
             for i in range(rng.randint(1, 4)):
-                add_random_vp(g, rng.choice([np.bool, np.int32, np.float64]))
+                add_random_ep(g, rng.choice([np.bool, np.int32, np.float64]),
+                              rng)
         out_suite[f'ep_{k}'] = v
 
     return out_suite
