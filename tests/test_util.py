@@ -384,7 +384,7 @@ def test_merge_suite(test_name):
         for key in g2.e.keys():
             assert key in gg.e.keys()
             for n1, n2 in g2.edges():
-                assert g2.e[key][n1, n2] == gg.e[key][g.vert_N+n1, g.vert_N+n2]
+                assert g2.e[key][n1, n2] == gg.e[key][g1.vert_N+n1, g1.vert_N+n2]
 
         # Adjacency
         assert np.array_equal(g1.adjacency, gg.adjacency[:g1.vert_N, :g1.vert_N])
