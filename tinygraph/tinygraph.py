@@ -398,19 +398,19 @@ class TinyGraph:
         Outputs:
             new_graph (TinyGraph): Deep copy of TinyGraph instance.
         """
-        v_p = {k : v.dtype for k, v in self.v.items()}
-        e_p = {k : e.dtype for k, e in self.e_p.items()}
+        v_p = {k : _extract_1d_dtype(v) for k, v in self.v.items()}
+        e_p = {k : _extract_2d_dtype(e) for k, e in self.e_p.items()}
 
         new_graph = TinyGraph(self.__vert_N, self.adjacency.dtype, v_p, e_p)
         new_graph.adjacency[:] = self.adjacency
 
         # Set vertex properties
         for key, arr in self.v.items():
-            new_graph.v[key][:] = self.v[key]
+            np.copyto(new_graph.v[key][:], self.v[key])
 
         # Set edge properties
         for key, arr in self.e.items():
-            new_graph.e_p[key][:] = self.e_p[key]
+            np.copyto(new_graph.e_p[key][:], self.e_p[key])
 
         for k, v in self.props.items():
             new_graph.props[k] = deepcopy(v)
@@ -569,3 +569,39 @@ class TinyGraph:
             n = (i, self.get_vert_props(i,vert_props),)
             vertices.append(n)
         return vertices
+
+
+def _extract_1d_dtype(x):
+    """
+    NumPy's handling of structured arrays is inconsistent when the structured
+    dtype is simply n contiguous values of a type, like '3float32' -- it
+    promotes the array to be multidimensional. 
+
+    This function extracts out the original multiple-element dtype, where
+    we are SURE we want a 1-d array, such as for per-vert properties. 
+
+
+    """
+    if x.ndim > 1:
+        dt = np.dtype((x.dtype, x.shape[1:]))
+    else:
+        dt = x.dtype
+    return dt
+
+def _extract_2d_dtype(x):
+    """
+    NumPy's handling of structured arrays is inconsistent when the structured
+    dtype is simply n contiguous values of a type, like '3float32' -- it
+    promotes the array to be multidimensional. 
+
+    This function extracts out the original multiple-element dtype, where
+    we are SURE we want a 2-d array, such as for per-edge properties. 
+
+
+    """
+    if x.ndim > 2:
+        dt = np.dtype((x.dtype, x.shape[2:]))
+    else:
+        dt = x.dtype
+    return dt
+    
