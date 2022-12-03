@@ -60,9 +60,7 @@ def _subgraph_relabel(g, vert_iter):
         sg (TinyGraph): subgraph with vertices in the same order as vert_iter.
     """
     N = len(vert_iter)
-    new_g = tg.TinyGraph(N, g.adjacency.dtype,
-                    {p:val.dtype for p, val in g.v.items()},
-                    {p:val.dtype for p, val in g.e.items()})
+    new_g = tg.empty_like(g, N)
     # Copy graph props
     # new_g.props = {k:v for k, v in g.props.items()}
     new_g.props = deepcopy(g.props)

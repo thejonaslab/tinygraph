@@ -2,6 +2,7 @@
 
 import numpy as np
 import tinygraph as tg
+from tinygraph.tinygraph import _extract_1d_dtype, _extract_2d_dtype
 import graph_test_suite
 import io
 import pytest
@@ -222,3 +223,53 @@ def test_copy_suite(test_name):
         g1 = g.copy()
         assert tg.util.graph_equality(g1, g)
         
+
+def test_vert_prop_with_multiple_dims():
+    """
+    There are some issues with per-vert properties having structured types, 
+    like copying doesn't work
+    """
+    N = 10
+    M = 5
+    g1 = tg.TinyGraph(10, vp_types = {'big' : '4float32'})
+
+    g2 = g1.copy()
+    
+                      
+
+
+
+def test_extract_low_dimension_dtypes():
+
+    x = np.zeros(10, 'float32,float32')
+    assert x.shape == (10,)
+
+    # this is the undesired behavior
+    x = np.zeros(10, '3float32')
+    assert x.shape == (10,3)
+
+    new_dt = _extract_1d_dtype(x)
+
+    assert new_dt == np.dtype('3float32')
+
+    x = np.zeros(10, dtype=('float32', (3, 2)))
+    
+    new_dt = _extract_1d_dtype(x)
+    print('the new dt is', new_dt)
+    assert new_dt == np.dtype(('float32', (3, 2)))
+
+
+    # now 2d 
+    x = np.zeros((10,15), 'float32,float32')
+    assert x.shape == (10,15)
+    
+    # this is the undesired behavior
+    x = np.zeros((10, 15), '3float32')
+    assert x.shape == (10,15, 3)
+
+    new_dt = _extract_2d_dtype(x)
+
+    assert new_dt == np.dtype(('float32', (3,)))
+
+    
+    

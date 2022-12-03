@@ -389,3 +389,14 @@ def test_merge_suite(test_name):
         # Adjacency
         assert np.array_equal(g1.adjacency, gg.adjacency[:g1.vert_N, :g1.vert_N])
         assert np.array_equal(g2.adjacency, gg.adjacency[g1.vert_N:, g1.vert_N:])
+
+
+
+def test_permute_multi_dtype():
+    """
+    Can we permute a graph with complex vert dtypes
+    """
+
+    g1 = tg.TinyGraph(5, vp_types = {'big' : '4float32'})
+    g1 = permute(g1,   [3,4,1,2,0])
+        
