@@ -398,10 +398,7 @@ class TinyGraph:
         Outputs:
             new_graph (TinyGraph): Deep copy of TinyGraph instance.
         """
-        v_p = {k : _extract_1d_dtype(v) for k, v in self.v.items()}
-        e_p = {k : _extract_2d_dtype(e) for k, e in self.e_p.items()}
-
-        new_graph = TinyGraph(self.__vert_N, self.adjacency.dtype, v_p, e_p)
+        new_graph = empty_like(self)
         new_graph.adjacency[:] = self.adjacency
 
         # Set vertex properties
@@ -605,3 +602,14 @@ def _extract_2d_dtype(x):
         dt = x.dtype
     return dt
     
+def empty_like(g):
+    """
+    Return a new empty graph like g, with same vert property types and 
+    edge property types.
+    """
+
+    v_p = {k : _extract_1d_dtype(v) for k, v in g.v.items()}
+    e_p = {k : _extract_2d_dtype(e) for k, e in g.e_p.items()}
+    
+    new_graph = TinyGraph(g.vert_N, g.adjacency.dtype, v_p, e_p)
+    return new_graph
