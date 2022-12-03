@@ -602,14 +602,18 @@ def _extract_2d_dtype(x):
         dt = x.dtype
     return dt
     
-def empty_like(g):
+def empty_like(g, N=None):
     """
     Return a new empty graph like g, with same vert property types and 
-    edge property types.
+    edge property types, and by default the same size.
+
+    N: number of nodes of output graph. 
     """
 
     v_p = {k : _extract_1d_dtype(v) for k, v in g.v.items()}
     e_p = {k : _extract_2d_dtype(e) for k, e in g.e_p.items()}
-    
-    new_graph = TinyGraph(g.vert_N, g.adjacency.dtype, v_p, e_p)
+
+    if N is None:
+        N = g.vert_N
+    new_graph = TinyGraph(N, g.adjacency.dtype, v_p, e_p)
     return new_graph
