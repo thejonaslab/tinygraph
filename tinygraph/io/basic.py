@@ -3,6 +3,7 @@
 import numpy as np
 import networkx
 import tinygraph as tg
+from tinygraph.tinygraph import _extract_1d_dtype, _extract_2d_dtype
 import json
 import warnings
 
@@ -283,9 +284,10 @@ def from_binary(fileobj):
             props = json.loads(d[k].tobytes())
         else:
             raise ValueErorr(f"unknown field {k} in npz file")
+
     g = tg.TinyGraph(adj.shape[0], adj.dtype,
-                   vp_types = {k : v.dtype for k, v in vp.items()},
-                   ep_types = {k : v.dtype for k, v in ep.items()},
+                   vp_types = {k : _extract_1d_dtype(v) for k, v in vp.items()},
+                   ep_types = {k : _extract_2d_dtype(v) for k, v in ep.items()},
                   )
     g.adjacency[:] = adj
 
